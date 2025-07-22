@@ -4,7 +4,7 @@
     "dart.debugExternalPackageLibraries": false,
     "dart.debugSdkLibraries": false,
     // 파일 저장 안전성 설정
-    "files.autoSave": "afterDelay",
+    "files.autoSave": "onFocusChange",
     "files.autoSaveDelay": 1000,
     "files.hotExit": "onExitAndWindowClose",
     "workbench.editor.restoreViewState": true,
