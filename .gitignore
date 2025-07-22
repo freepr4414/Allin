@@ -1,6 +1,22 @@
-# Flutter/Dart 관련
+# 빌드 파일 제외
 **/build/
 **/.dart_tool/
-# Go 관련
+**/android/local.properties
+**/ios/Flutter/Generated.xcconfig
+**/windows/flutter/ephemeral/
+**/linux/flutter/ephemeral/
+**/macos/Flutter/ephemeral/
+
+# Go 바이너리 파일
+*.exe
+*.exe~
 **/bin/
-**/*.exe
+
+# IDE 파일
+**/.idea/
+**/.vscode/settings.json
+
+# 기타 임시 파일
+**/.DS_Store
+**/Thumbs.db
+**/flutter_windows.dll.pdb
