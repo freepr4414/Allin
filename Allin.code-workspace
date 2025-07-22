@@ -5,6 +5,10 @@
             "path": "./shinnara"
         },
         {
+            "name": "shinnara2",
+            "path": "./shinnara2"
+        },
+        {
             "name": "naracontrol",
             "path": "./naracontrol"
         },
