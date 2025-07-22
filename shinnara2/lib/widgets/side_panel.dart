@@ -1,434 +1,458 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../screens/main/main_layout.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class SidePanel extends StatelessWidget {
-  final SidePanelType sidePanelType;
+import '../models/seat.dart';
+import '../providers/seat_provider.dart';
+import '../providers/ui_provider.dart';
 
-  const SidePanel({super.key, required this.sidePanelType});
+class SidePanel extends ConsumerWidget {
+  final SidePanelType type;
+
+  const SidePanel({super.key, required this.type});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(
-          left: BorderSide(color: Theme.of(context).colorScheme.outline.withOpacity(0.2)),
-        ),
-      ),
+      padding: const EdgeInsets.all(24),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 헤더
-          Container(
-            padding: EdgeInsets.all(16.w),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
-              border: Border(
-                bottom: BorderSide(color: Theme.of(context).colorScheme.outline.withOpacity(0.2)),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(sidePanelType.icon, color: Theme.of(context).colorScheme.primary, size: 20.sp),
-                SizedBox(width: 8.w),
-                Expanded(
-                  child: Text(
-                    sidePanelType.title,
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurface,
+          Row(
+            children: [
+              Icon(_getIconForType(type), color: Theme.of(context).primaryColor, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      type.title,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                     ),
-                  ),
+                    Text(
+                      type.description,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () {
+                  ref.read(selectedSidePanelProvider.notifier).state = null;
+                },
+              ),
+            ],
           ),
+          const SizedBox(height: 24),
+          const Divider(),
+          const SizedBox(height: 24),
 
           // 콘텐츠
-          Expanded(child: _buildPanelContent(context)),
+          Expanded(child: _buildContent(context, ref, type)),
         ],
       ),
     );
   }
 
-  Widget _buildPanelContent(BuildContext context) {
-    switch (sidePanelType) {
+  IconData _getIconForType(SidePanelType type) {
+    switch (type) {
       case SidePanelType.dashboard:
-        return _buildDashboardPanel(context);
+        return Icons.dashboard;
       case SidePanelType.members:
-        return _buildMembersPanel(context);
+        return Icons.people;
       case SidePanelType.payments:
-        return _buildPaymentsPanel(context);
+        return Icons.payment;
       case SidePanelType.statistics:
-        return _buildStatisticsPanel(context);
+        return Icons.bar_chart;
       case SidePanelType.settings:
-        return _buildSettingsPanel(context);
+        return Icons.settings;
     }
   }
 
-  Widget _buildDashboardPanel(BuildContext context) {
-    return ListView(
-      padding: EdgeInsets.all(16.w),
-      children: [
-        _buildSummaryCard(context, '오늘 매출', '₩1,234,567', Icons.attach_money, Colors.green),
-        SizedBox(height: 12.h),
-        _buildSummaryCard(context, '현재 이용객', '32명', Icons.people, Colors.blue),
-        SizedBox(height: 12.h),
-        _buildSummaryCard(context, '이용률', '75%', Icons.trending_up, Colors.orange),
-        SizedBox(height: 20.h),
+  Widget _buildContent(BuildContext context, WidgetRef ref, SidePanelType type) {
+    switch (type) {
+      case SidePanelType.dashboard:
+        return _buildDashboard(context, ref);
+      case SidePanelType.members:
+        return _buildMembers(context, ref);
+      case SidePanelType.payments:
+        return _buildPayments(context, ref);
+      case SidePanelType.statistics:
+        return _buildStatistics(context, ref);
+      case SidePanelType.settings:
+        return _buildSettings(context, ref);
+    }
+  }
 
-        Text(
-          '최근 활동',
-          style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
-        ),
-        SizedBox(height: 12.h),
+  Widget _buildDashboard(BuildContext context, WidgetRef ref) {
+    final seatStats = ref.watch(seatStatisticsProvider);
+    final occupiedSeats = ref.watch(occupiedSeatsProvider);
 
-        ...List.generate(
-          5,
-          (index) => _buildActivityItem(
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 좌석 현황 카드
+          _buildStatCard(context, '전체 좌석', '48석', Icons.event_seat, Colors.blue),
+          const SizedBox(height: 12),
+          _buildStatCard(
             context,
-            '김회원님이 ${index + 1}번 좌석에 입실했습니다.',
-            '${15 - index}분 전',
-            Icons.login,
+            '사용 중',
+            '${seatStats[SeatStatus.occupied] ?? 0}석',
+            Icons.person,
+            Colors.green,
           ),
-        ),
-      ],
+          const SizedBox(height: 12),
+          _buildStatCard(
+            context,
+            '사용 가능',
+            '${seatStats[SeatStatus.available] ?? 0}석',
+            Icons.event_available,
+            Colors.orange,
+          ),
+          const SizedBox(height: 12),
+          _buildStatCard(
+            context,
+            '점검 중',
+            '${seatStats[SeatStatus.maintenance] ?? 0}석',
+            Icons.build,
+            Colors.red,
+          ),
+
+          const SizedBox(height: 24),
+          Text(
+            '최근 활동',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+
+          // 현재 사용 중인 좌석 목록
+          ...occupiedSeats
+              .take(5)
+              .map(
+                (seat) => Card(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.green.withValues(alpha: 0.1),
+                      child: Text(
+                        seat.number,
+                        style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    title: Text(seat.userName ?? '사용자'),
+                    subtitle: Text('${seat.type.typeText} • ${seat.remainingTimeText}'),
+                    trailing: Text(
+                      seat.startTime?.toString().substring(11, 16) ?? '',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    ),
+                  ),
+                ),
+              ),
+        ],
+      ),
     );
   }
 
-  Widget _buildMembersPanel(BuildContext context) {
-    return Column(
-      children: [
-        // 검색 및 필터
-        Container(
-          padding: EdgeInsets.all(16.w),
-          child: Column(
-            children: [
-              TextField(
-                decoration: InputDecoration(
-                  hintText: '회원 검색',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+  Widget _buildMembers(BuildContext context, WidgetRef ref) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 검색 바
+          TextField(
+            decoration: InputDecoration(
+              hintText: '회원 검색...',
+              prefixIcon: const Icon(Icons.search),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // 회원 목록
+          ...List.generate(
+            10,
+            (index) => Card(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                  child: Text(
+                    '회${index + 1}',
+                    style: TextStyle(
+                      color: Theme.of(context).primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                title: Text('회원 ${index + 1}'),
+                subtitle: Text('010-1234-${(5678 + index).toString().padLeft(4, '0')}'),
+                trailing: PopupMenuButton<String>(
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(value: 'edit', child: Text('편집')),
+                    const PopupMenuItem(value: 'delete', child: Text('삭제')),
+                  ],
                 ),
               ),
-              SizedBox(height: 12.h),
-              Row(
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPayments(BuildContext context, WidgetRef ref) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 오늘의 매출
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.person_add),
-                      label: const Text('회원 추가'),
+                  Text(
+                    '오늘의 매출',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '₩ 245,000',
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
-        ),
-
-        // 회원 목록
-        Expanded(
-          child: ListView.builder(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            itemCount: 10,
-            itemBuilder: (context, index) => _buildMemberItem(
-              context,
-              '회원${index + 1}',
-              '010-1234-567${index}',
-              index % 3 == 0 ? '이용중' : '대기중',
             ),
           ),
-        ),
-      ],
-    );
-  }
+          const SizedBox(height: 16),
 
-  Widget _buildPaymentsPanel(BuildContext context) {
-    return ListView(
-      padding: EdgeInsets.all(16.w),
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.payment),
-                label: const Text('결제 처리'),
+          Text(
+            '최근 결제 내역',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+
+          // 결제 내역 목록
+          ...List.generate(
+            8,
+            (index) => Card(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: Colors.green.withValues(alpha: 0.1),
+                  child: const Icon(Icons.payment, color: Colors.green),
+                ),
+                title: Text('좌석 ${(index + 1).toString().padLeft(2, '0')} 이용료'),
+                subtitle: Text(
+                  DateTime.now().subtract(Duration(hours: index)).toString().substring(5, 16),
+                ),
+                trailing: Text(
+                  '₩ ${(5000 + index * 1000).toStringAsFixed(0)}',
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+                ),
               ),
             ),
-          ],
-        ),
-        SizedBox(height: 20.h),
-
-        Text(
-          '오늘 결제 내역',
-          style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
-        ),
-        SizedBox(height: 12.h),
-
-        ...List.generate(
-          8,
-          (index) => _buildPaymentItem(
-            context,
-            '회원${index + 1}',
-            '시간권 3시간',
-            '₩15,000',
-            '${12 + index}:30',
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _buildStatisticsPanel(BuildContext context) {
-    return ListView(
-      padding: EdgeInsets.all(16.w),
-      children: [
-        _buildStatCard(context, '일간 통계', '오늘', '₩450,000', '48명'),
-        SizedBox(height: 12.h),
-        _buildStatCard(context, '주간 통계', '이번 주', '₩2,850,000', '312명'),
-        SizedBox(height: 12.h),
-        _buildStatCard(context, '월간 통계', '이번 달', '₩12,450,000', '1,247명'),
-        SizedBox(height: 20.h),
-
-        Container(
-          padding: EdgeInsets.all(16.w),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(8.r),
+  Widget _buildStatistics(BuildContext context, WidgetRef ref) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 이용률 그래프 (간단한 표현)
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '주간 이용률',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: ['월', '화', '수', '목', '금', '토', '일']
+                        .map(
+                          (day) => Column(
+                            children: [
+                              Container(
+                                height: 80,
+                                width: 24,
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).primaryColor.withValues(alpha: 0.7),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(day, style: const TextStyle(fontSize: 12)),
+                            ],
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ],
+              ),
+            ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: 16),
+
+          // 통계 카드들
+          Row(
             children: [
-              Text(
-                '인기 시간대',
-                style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
+              Expanded(
+                child: _buildStatCard(context, '평균 이용시간', '3.2시간', Icons.access_time, Colors.blue),
               ),
-              SizedBox(height: 8.h),
-              Text('14:00 - 18:00 (75% 이용률)', style: TextStyle(fontSize: 12.sp)),
-              Text('19:00 - 22:00 (82% 이용률)', style: TextStyle(fontSize: 12.sp)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildStatCard(
+                  context,
+                  '일 평균 매출',
+                  '₩ 180K',
+                  Icons.trending_up,
+                  Colors.green,
+                ),
+              ),
             ],
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSettingsPanel(BuildContext context) {
-    return ListView(
-      padding: EdgeInsets.all(16.w),
-      children: [
-        ListTile(
-          leading: const Icon(Icons.store),
-          title: const Text('매장 설정'),
-          subtitle: const Text('매장 정보 및 운영시간'),
-          onTap: () {},
-        ),
-        ListTile(
-          leading: const Icon(Icons.chair),
-          title: const Text('좌석 설정'),
-          subtitle: const Text('좌석 배치 및 요금'),
-          onTap: () {},
-        ),
-        ListTile(
-          leading: const Icon(Icons.payment),
-          title: const Text('결제 설정'),
-          subtitle: const Text('결제 수단 및 정책'),
-          onTap: () {},
-        ),
-        ListTile(
-          leading: const Icon(Icons.notifications),
-          title: const Text('알림 설정'),
-          subtitle: const Text('알림 및 메시지'),
-          onTap: () {},
-        ),
-        ListTile(
-          leading: const Icon(Icons.backup),
-          title: const Text('백업 및 복원'),
-          subtitle: const Text('데이터 백업'),
-          onTap: () {},
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSummaryCard(
-    BuildContext context,
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 24.sp),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                Text(
-                  value,
-                  style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: color),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActivityItem(BuildContext context, String text, String time, IconData icon) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 8.h),
-      padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(8.r),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 16.sp, color: Theme.of(context).colorScheme.primary),
-          SizedBox(width: 8.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(text, style: TextStyle(fontSize: 12.sp)),
-                Text(
-                  time,
-                  style: TextStyle(
-                    fontSize: 10.sp,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMemberItem(BuildContext context, String name, String phone, String status) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 8.h),
-      padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.2)),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(radius: 16.r, child: Text(name.substring(0, 1))),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  phone,
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-            decoration: BoxDecoration(
-              color: status == '이용중' ? Colors.green.withOpacity(0.2) : Colors.grey.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12.r),
-            ),
-            child: Text(
-              status,
-              style: TextStyle(
-                fontSize: 10.sp,
-                color: status == '이용중' ? Colors.green : Colors.grey,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPaymentItem(
-    BuildContext context,
-    String member,
-    String item,
-    String amount,
-    String time,
-  ) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 8.h),
-      padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.2)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  member,
-                  style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  item,
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          const SizedBox(height: 12),
+          Row(
             children: [
-              Text(
-                amount,
-                style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: Colors.green),
+              Expanded(
+                child: _buildStatCard(context, '신규 회원', '12명', Icons.person_add, Colors.orange),
               ),
-              Text(
-                time,
-                style: TextStyle(
-                  fontSize: 10.sp,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
+              const SizedBox(width: 12),
+              Expanded(child: _buildStatCard(context, '재방문율', '68%', Icons.refresh, Colors.purple)),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettings(BuildContext context, WidgetRef ref) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 일반 설정
+          Text(
+            '일반 설정',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.language),
+                  title: const Text('언어'),
+                  subtitle: const Text('한국어'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {},
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.palette),
+                  title: const Text('테마'),
+                  subtitle: const Text('라이트 모드'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {},
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.notifications),
+                  title: const Text('알림'),
+                  trailing: Switch(value: true, onChanged: (value) {}),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // 좌석 설정
+          Text(
+            '좌석 설정',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.timer),
+                  title: const Text('기본 이용시간'),
+                  subtitle: const Text('2시간'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {},
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.money),
+                  title: const Text('시간당 요금'),
+                  subtitle: const Text('₩ 2,500'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {},
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.auto_delete),
+                  title: const Text('자동 정리'),
+                  trailing: Switch(value: true, onChanged: (value) {}),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // 시스템 정보
+          Text(
+            '시스템 정보',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.info),
+                  title: const Text('버전'),
+                  subtitle: const Text('v1.0.0'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.update),
+                  title: const Text('업데이트 확인'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {},
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -438,78 +462,45 @@ class SidePanel extends StatelessWidget {
   Widget _buildStatCard(
     BuildContext context,
     String title,
-    String period,
-    String revenue,
-    String visitors,
+    String value,
+    IconData icon,
+    Color color,
   ) {
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
-          ),
-          Text(
-            period,
-            style: TextStyle(
-              fontSize: 12.sp,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: color, size: 24),
             ),
-          ),
-          SizedBox(height: 8.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '매출',
-                    style: TextStyle(
-                      fontSize: 10.sp,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                    title,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                   ),
                   Text(
-                    revenue,
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
-                    ),
+                    value,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '이용객',
-                    style: TextStyle(
-                      fontSize: 10.sp,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  Text(
-                    visitors,
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -3,17 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user.dart';
 
 class AuthState {
-  final bool isLoggedIn;
+  final bool isAuthenticated;
   final User? user;
   final String? error;
 
-  const AuthState({this.isLoggedIn = false, this.user, this.error});
+  const AuthState({this.isAuthenticated = false, this.user, this.error});
 
-  AuthState copyWith({bool? isLoggedIn, User? user, String? error}) {
+  AuthState copyWith({bool? isAuthenticated, User? user, String? error}) {
     return AuthState(
-      isLoggedIn: isLoggedIn ?? this.isLoggedIn,
+      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       user: user ?? this.user,
-      error: error,
+      error: error ?? this.error,
     );
   }
 }
@@ -21,19 +21,32 @@ class AuthState {
 class AuthNotifier extends StateNotifier<AuthState> {
   AuthNotifier() : super(const AuthState());
 
-  Future<void> login(String email, String password) async {
+  Future<void> login(String username, String password) async {
     try {
-      // 실제 구현시에는 API 호출
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      if (email == "admin@studycafe.com" && password == "admin123") {
-        const user = User(id: "1", name: "관리자", email: "admin@studycafe.com", role: UserRole.admin);
-        state = state.copyWith(isLoggedIn: true, user: user, error: null);
+      // 간단한 로그인 로직
+      if (username == 'admin' && password == 'admin') {
+        final user = User(
+          id: '1',
+          username: 'admin',
+          name: '관리자',
+          type: UserType.admin,
+          status: UserStatus.active,
+        );
+        state = state.copyWith(isAuthenticated: true, user: user, error: null);
+      } else if (username == 'user' && password == 'user') {
+        final user = User(
+          id: '2',
+          username: 'user',
+          name: '사용자',
+          type: UserType.member,
+          status: UserStatus.active,
+        );
+        state = state.copyWith(isAuthenticated: true, user: user, error: null);
       } else {
-        state = state.copyWith(error: "이메일 또는 비밀번호가 올바르지 않습니다.");
+        state = state.copyWith(error: '잘못된 사용자명 또는 비밀번호입니다.');
       }
     } catch (e) {
-      state = state.copyWith(error: "로그인 중 오류가 발생했습니다.");
+      state = state.copyWith(error: '로그인 중 오류가 발생했습니다: $e');
     }
   }
 

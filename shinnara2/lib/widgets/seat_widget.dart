@@ -1,159 +1,151 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/seat.dart';
+import '../providers/seat_provider.dart';
 
-class SeatWidget extends StatelessWidget {
+class SeatWidget extends ConsumerWidget {
   final Seat seat;
   final double size;
+  final VoidCallback? onTap;
 
-  const SeatWidget({super.key, required this.seat, this.size = 80});
+  const SeatWidget({super.key, required this.seat, this.size = 60.0, this.onTap});
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: _getSeatColor(),
-        borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: _getBorderColor(), width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+  Widget build(BuildContext context, WidgetRef ref) {
+    return GestureDetector(
+      onTap: () {
+        ref.read(seatProvider.notifier).selectSeat(seat.id);
+        onTap?.call();
+      },
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: _getSeatColor(seat.status),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: seat.isSelected
+                ? Theme.of(context).primaryColor
+                : _getSeatBorderColor(seat.status),
+            width: seat.isSelected ? 3 : 1,
           ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          // 좌석 번호
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  seat.number.toString(),
-                  style: TextStyle(
-                    fontSize: (size * 0.25).sp,
-                    fontWeight: FontWeight.bold,
-                    color: _getTextColor(),
-                  ),
+          boxShadow: [
+            if (seat.isSelected)
+              BoxShadow(
+                color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
+                blurRadius: 8,
+                spreadRadius: 2,
+              ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // 좌석 번호
+            Text(
+              seat.number,
+              style: TextStyle(
+                fontSize: size * 0.25,
+                fontWeight: FontWeight.bold,
+                color: _getTextColor(seat.status),
+              ),
+            ),
+
+            // 좌석 타입 아이콘
+            Icon(
+              _getSeatTypeIcon(seat.type),
+              size: size * 0.2,
+              color: _getTextColor(seat.status).withValues(alpha: 0.7),
+            ),
+
+            // 남은 시간 (사용 중인 경우)
+            if (seat.status == SeatStatus.occupied && seat.remainingMinutes != null)
+              Text(
+                _formatTime(seat.remainingMinutes!),
+                style: TextStyle(
+                  fontSize: size * 0.12,
+                  color: _getTextColor(seat.status).withValues(alpha: 0.8),
                 ),
-                if (seat.userName != null) ...[
-                  SizedBox(height: 2.h),
-                  Text(
-                    seat.userName!,
-                    style: TextStyle(fontSize: (size * 0.15).sp, color: _getTextColor()),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ],
-            ),
-          ),
-
-          // 좌석 타입 아이콘
-          Positioned(
-            top: 2.h,
-            right: 2.w,
-            child: Icon(
-              _getSeatTypeIcon(),
-              size: (size * 0.2).sp,
-              color: _getTextColor().withOpacity(0.7),
-            ),
-          ),
-
-          // 상태 표시 점
-          Positioned(
-            top: 2.h,
-            left: 2.w,
-            child: Container(
-              width: (size * 0.15).w,
-              height: (size * 0.15).h,
-              decoration: BoxDecoration(color: _getStatusDotColor(), shape: BoxShape.circle),
-            ),
-          ),
-        ],
+              ),
+          ],
+        ),
       ),
     );
   }
 
-  Color _getSeatColor() {
-    switch (seat.status) {
+  Color _getSeatColor(SeatStatus status) {
+    switch (status) {
       case SeatStatus.available:
-        return Colors.green.shade100;
+        return Colors.green[100]!;
       case SeatStatus.occupied:
-        return Colors.red.shade100;
-      case SeatStatus.away:
-        return Colors.orange.shade100;
+        return Colors.red[100]!;
       case SeatStatus.reserved:
-        return Colors.blue.shade100;
+        return Colors.blue[100]!;
+      case SeatStatus.maintenance:
+        return Colors.orange[100]!;
       case SeatStatus.outOfOrder:
-        return Colors.grey.shade300;
+        return Colors.grey[300]!;
       case SeatStatus.cleaning:
-        return Colors.purple.shade100;
+        return Colors.purple[100]!;
     }
   }
 
-  Color _getBorderColor() {
-    switch (seat.type) {
-      case SeatType.standard:
-        return Colors.blue;
-      case SeatType.premium:
-        return Colors.purple;
-      case SeatType.group:
-        return Colors.teal;
-      case SeatType.phone:
-        return Colors.brown;
-    }
-  }
-
-  Color _getTextColor() {
-    switch (seat.status) {
+  Color _getSeatBorderColor(SeatStatus status) {
+    switch (status) {
       case SeatStatus.available:
-        return Colors.green.shade800;
+        return Colors.green[300]!;
       case SeatStatus.occupied:
-        return Colors.red.shade800;
-      case SeatStatus.away:
-        return Colors.orange.shade800;
+        return Colors.red[300]!;
       case SeatStatus.reserved:
-        return Colors.blue.shade800;
+        return Colors.blue[300]!;
+      case SeatStatus.maintenance:
+        return Colors.orange[300]!;
       case SeatStatus.outOfOrder:
-        return Colors.grey.shade600;
+        return Colors.grey[500]!;
       case SeatStatus.cleaning:
-        return Colors.purple.shade800;
+        return Colors.purple[300]!;
     }
   }
 
-  Color _getStatusDotColor() {
-    switch (seat.status) {
+  Color _getTextColor(SeatStatus status) {
+    switch (status) {
       case SeatStatus.available:
-        return Colors.green;
+        return Colors.green[800]!;
       case SeatStatus.occupied:
-        return Colors.red;
-      case SeatStatus.away:
-        return Colors.orange;
+        return Colors.red[800]!;
       case SeatStatus.reserved:
-        return Colors.blue;
+        return Colors.blue[800]!;
+      case SeatStatus.maintenance:
+        return Colors.orange[800]!;
       case SeatStatus.outOfOrder:
-        return Colors.grey;
+        return Colors.grey[700]!;
       case SeatStatus.cleaning:
-        return Colors.purple;
+        return Colors.purple[800]!;
     }
   }
 
-  IconData _getSeatTypeIcon() {
-    switch (seat.type) {
+  IconData _getSeatTypeIcon(SeatType type) {
+    switch (type) {
       case SeatType.standard:
         return Icons.chair;
       case SeatType.premium:
-        return Icons.star;
-      case SeatType.group:
-        return Icons.group;
-      case SeatType.phone:
-        return Icons.phone;
+        return Icons.chair_outlined;
+      case SeatType.study:
+        return Icons.desk;
+      case SeatType.meeting:
+        return Icons.meeting_room;
+    }
+  }
+
+  String _formatTime(int minutes) {
+    final hours = minutes ~/ 60;
+    final mins = minutes % 60;
+
+    if (hours > 0) {
+      return '${hours}h${mins}m';
+    } else {
+      return '${mins}m';
     }
   }
 }

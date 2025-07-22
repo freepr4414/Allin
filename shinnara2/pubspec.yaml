@@ -38,10 +38,6 @@ dependencies:
   # 상태 관리
   flutter_riverpod: ^2.5.1
 
-  # 반응형 UI
-  responsive_framework: ^1.4.0
-  flutter_screenutil: ^5.9.0
-
   # 애니메이션
   animations: ^2.0.11
 

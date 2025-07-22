@@ -1,14 +1,90 @@
+enum SeatStatus {
+  available,
+  occupied,
+  reserved,
+  maintenance,
+  outOfOrder,
+  cleaning;
+
+  String get displayName {
+    switch (this) {
+      case SeatStatus.available:
+        return '사용 가능';
+      case SeatStatus.occupied:
+        return '사용 중';
+      case SeatStatus.reserved:
+        return '예약됨';
+      case SeatStatus.maintenance:
+        return '점검 중';
+      case SeatStatus.outOfOrder:
+        return '고장';
+      case SeatStatus.cleaning:
+        return '청소 중';
+    }
+  }
+
+  String get statusText {
+    switch (this) {
+      case SeatStatus.available:
+        return '사용 가능';
+      case SeatStatus.occupied:
+        return '사용 중';
+      case SeatStatus.reserved:
+        return '예약됨';
+      case SeatStatus.maintenance:
+        return '점검';
+      case SeatStatus.outOfOrder:
+        return '고장';
+      case SeatStatus.cleaning:
+        return '청소';
+    }
+  }
+}
+
+enum SeatType {
+  standard,
+  premium,
+  study,
+  meeting;
+
+  String get displayName {
+    switch (this) {
+      case SeatType.standard:
+        return '일반석';
+      case SeatType.premium:
+        return '프리미엄석';
+      case SeatType.study:
+        return '스터디룸';
+      case SeatType.meeting:
+        return '회의실';
+    }
+  }
+
+  String get typeText {
+    switch (this) {
+      case SeatType.standard:
+        return '일반';
+      case SeatType.premium:
+        return '프리미엄';
+      case SeatType.study:
+        return '스터디';
+      case SeatType.meeting:
+        return '회의';
+    }
+  }
+}
+
 class Seat {
   final String id;
-  final int number;
+  final String number;
   final SeatType type;
   final SeatStatus status;
-  final String? userId; // 현재 사용 중인 회원 ID
-  final String? userName; // 현재 사용 중인 회원 이름
-  final DateTime? startTime; // 입실 시간
-  final DateTime? endTime; // 예상 퇴실 시간
-  final double x; // 좌석 배치도에서의 X 좌표
-  final double y; // 좌석 배치도에서의 Y 좌표
+  final String? userId;
+  final String? userName;
+  final DateTime? startTime;
+  final DateTime? endTime;
+  final int? remainingMinutes;
+  final bool isSelected;
 
   const Seat({
     required this.id,
@@ -19,21 +95,21 @@ class Seat {
     this.userName,
     this.startTime,
     this.endTime,
-    required this.x,
-    required this.y,
+    this.remainingMinutes,
+    this.isSelected = false,
   });
 
   Seat copyWith({
     String? id,
-    int? number,
+    String? number,
     SeatType? type,
     SeatStatus? status,
     String? userId,
     String? userName,
     DateTime? startTime,
     DateTime? endTime,
-    double? x,
-    double? y,
+    int? remainingMinutes,
+    bool? isSelected,
   }) {
     return Seat(
       id: id ?? this.id,
@@ -44,53 +120,35 @@ class Seat {
       userName: userName ?? this.userName,
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
-      x: x ?? this.x,
-      y: y ?? this.y,
+      remainingMinutes: remainingMinutes ?? this.remainingMinutes,
+      isSelected: isSelected ?? this.isSelected,
     );
   }
-}
 
-enum SeatType { standard, premium, group, phone }
+  String get remainingTimeText {
+    if (remainingMinutes == null) return '';
 
-enum SeatStatus {
-  available, // 사용 가능
-  occupied, // 사용 중
-  reserved, // 예약됨
-  outOfOrder, // 고장
-  cleaning, // 청소 중
-  away, // 외출 중
-}
+    final hours = remainingMinutes! ~/ 60;
+    final minutes = remainingMinutes! % 60;
 
-extension SeatTypeExtension on SeatType {
-  String get displayName {
-    switch (this) {
-      case SeatType.standard:
-        return '일반석';
-      case SeatType.premium:
-        return '프리미엄석';
-      case SeatType.group:
-        return '그룹석';
-      case SeatType.phone:
-        return '폰부스';
+    if (hours > 0) {
+      return '$hours시간 $minutes분';
+    } else {
+      return '$minutes분';
     }
   }
-}
 
-extension SeatStatusExtension on SeatStatus {
-  String get displayName {
-    switch (this) {
-      case SeatStatus.available:
-        return '사용가능';
-      case SeatStatus.occupied:
-        return '사용중';
-      case SeatStatus.reserved:
-        return '예약됨';
-      case SeatStatus.outOfOrder:
-        return '고장';
-      case SeatStatus.cleaning:
-        return '청소중';
-      case SeatStatus.away:
-        return '외출중';
-    }
+  @override
+  String toString() {
+    return 'Seat(id: $id, number: $number, type: $type, status: $status)';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is Seat && other.id == id;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
 }

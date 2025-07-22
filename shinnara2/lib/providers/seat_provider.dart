@@ -6,87 +6,136 @@ class SeatNotifier extends StateNotifier<List<Seat>> {
   SeatNotifier() : super(_generateInitialSeats());
 
   static List<Seat> _generateInitialSeats() {
-    final seats = <Seat>[];
+    return List.generate(48, (index) {
+      final seatNumber = (index + 1).toString().padLeft(2, '0');
+      final seatType = index < 16
+          ? SeatType.standard
+          : index < 32
+          ? SeatType.premium
+          : index < 40
+          ? SeatType.study
+          : SeatType.meeting;
 
-    // 6x8 좌석 배치 (48개 좌석)
-    for (int row = 0; row < 6; row++) {
-      for (int col = 0; col < 8; col++) {
-        final seatNumber = row * 8 + col + 1;
-        seats.add(
-          Seat(
-            id: 'seat_$seatNumber',
-            number: seatNumber,
-            type: _getSeatType(seatNumber),
-            status: SeatStatus.available,
-            x: col * 120.0 + 60.0, // 좌석 간격 120px
-            y: row * 100.0 + 60.0, // 행 간격 100px
-          ),
-        );
+      // 일부 좌석을 사용 중으로 설정
+      final isOccupied = [2, 5, 8, 12, 15, 20, 25, 30].contains(index + 1);
+
+      return Seat(
+        id: 'seat_$seatNumber',
+        number: seatNumber,
+        type: seatType,
+        status: isOccupied ? SeatStatus.occupied : SeatStatus.available,
+        userId: isOccupied ? 'user_${index + 1}' : null,
+        userName: isOccupied ? '사용자 ${index + 1}' : null,
+        startTime: isOccupied ? DateTime.now().subtract(Duration(minutes: index * 10)) : null,
+        endTime: isOccupied ? DateTime.now().add(Duration(hours: 2 + index % 4)) : null,
+        remainingMinutes: isOccupied ? (120 + index * 30) % 300 : null,
+      );
+    });
+  }
+
+  void updateSeatStatus(String seatId, SeatStatus status) {
+    state = state.map((seat) {
+      if (seat.id == seatId) {
+        return seat.copyWith(status: status);
       }
-    }
-
-    return seats;
+      return seat;
+    }).toList();
   }
 
-  static SeatType _getSeatType(int seatNumber) {
-    if (seatNumber <= 8) return SeatType.premium; // 첫 번째 줄은 프리미엄석
-    if (seatNumber >= 41) return SeatType.group; // 마지막 줄은 그룹석
-    if (seatNumber % 8 == 1 || seatNumber % 8 == 0) return SeatType.phone; // 양쪽 끝은 폰부스
-    return SeatType.standard;
+  void selectSeat(String seatId) {
+    state = state.map((seat) {
+      return seat.copyWith(isSelected: seat.id == seatId);
+    }).toList();
   }
 
-  void updateSeatStatus(
-    String seatId,
-    SeatStatus newStatus, {
-    String? userId,
-    String? userName,
-    DateTime? startTime,
-    DateTime? endTime,
-  }) {
+  void clearSelection() {
+    state = state.map((seat) {
+      return seat.copyWith(isSelected: false);
+    }).toList();
+  }
+
+  void checkInSeat(String seatId, String userId, String userName, int hours) {
+    final now = DateTime.now();
     state = state.map((seat) {
       if (seat.id == seatId) {
         return seat.copyWith(
-          status: newStatus,
+          status: SeatStatus.occupied,
           userId: userId,
           userName: userName,
-          startTime: startTime,
-          endTime: endTime,
+          startTime: now,
+          endTime: now.add(Duration(hours: hours)),
+          remainingMinutes: hours * 60,
         );
       }
       return seat;
     }).toList();
   }
 
-  void checkinSeat(String seatId, String userId, String userName) {
-    updateSeatStatus(
-      seatId,
-      SeatStatus.occupied,
-      userId: userId,
-      userName: userName,
-      startTime: DateTime.now(),
-    );
+  void checkOutSeat(String seatId) {
+    state = state.map((seat) {
+      if (seat.id == seatId) {
+        return seat.copyWith(
+          status: SeatStatus.available,
+          userId: null,
+          userName: null,
+          startTime: null,
+          endTime: null,
+          remainingMinutes: null,
+        );
+      }
+      return seat;
+    }).toList();
   }
 
-  void checkoutSeat(String seatId) {
-    updateSeatStatus(
-      seatId,
-      SeatStatus.available,
-      userId: null,
-      userName: null,
-      startTime: null,
-      endTime: null,
-    );
+  void extendTime(String seatId, int additionalMinutes) {
+    state = state.map((seat) {
+      if (seat.id == seatId && seat.remainingMinutes != null) {
+        final newRemainingMinutes = seat.remainingMinutes! + additionalMinutes;
+        final newEndTime = seat.endTime?.add(Duration(minutes: additionalMinutes));
+        return seat.copyWith(remainingMinutes: newRemainingMinutes, endTime: newEndTime);
+      }
+      return seat;
+    }).toList();
   }
 
-  void setSeatAway(String seatId) {
-    updateSeatStatus(seatId, SeatStatus.away);
+  Map<SeatStatus, int> getSeatStatistics() {
+    final stats = <SeatStatus, int>{};
+    for (final status in SeatStatus.values) {
+      stats[status] = state.where((seat) => seat.status == status).length;
+    }
+    return stats;
   }
 
-  void returnFromAway(String seatId) {
-    updateSeatStatus(seatId, SeatStatus.occupied);
+  List<Seat> getOccupiedSeats() {
+    return state.where((seat) => seat.status == SeatStatus.occupied).toList();
+  }
+
+  Seat? getSeatById(String seatId) {
+    try {
+      return state.firstWhere((seat) => seat.id == seatId);
+    } catch (e) {
+      return null;
+    }
   }
 }
 
 final seatProvider = StateNotifierProvider<SeatNotifier, List<Seat>>((ref) {
   return SeatNotifier();
+});
+
+final selectedSeatProvider = Provider<Seat?>((ref) {
+  final seats = ref.watch(seatProvider);
+  try {
+    return seats.firstWhere((seat) => seat.isSelected);
+  } catch (e) {
+    return null;
+  }
+});
+
+final seatStatisticsProvider = Provider<Map<SeatStatus, int>>((ref) {
+  return ref.read(seatProvider.notifier).getSeatStatistics();
+});
+
+final occupiedSeatsProvider = Provider<List<Seat>>((ref) {
+  return ref.read(seatProvider.notifier).getOccupiedSeats();
 });

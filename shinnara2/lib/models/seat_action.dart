@@ -40,13 +40,13 @@ extension SeatActionExtension on SeatAction {
       case SeatAction.checkin:
         return status == SeatStatus.available;
       case SeatAction.checkout:
-        return status == SeatStatus.occupied || status == SeatStatus.away;
+        return status == SeatStatus.occupied;
       case SeatAction.goOut:
         return status == SeatStatus.occupied;
       case SeatAction.returnSeat:
-        return status == SeatStatus.away;
+        return status == SeatStatus.reserved;
       case SeatAction.moveSeat:
-        return status == SeatStatus.occupied || status == SeatStatus.away;
+        return status == SeatStatus.occupied || status == SeatStatus.reserved;
       case SeatAction.lightOn:
       case SeatAction.lightOff:
         return status == SeatStatus.occupied;
