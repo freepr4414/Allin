@@ -8,30 +8,27 @@
     "go.lintOnSave": "package",
     "go.vetOnSave": "package",
     "go.formatTool": "goimports",
-    "go.gocodeAutoBuild": true,
-    "go.goroot": "",
-    "go.gopath": "",
-    "go.inferGopath": true,
-    "go.buildOnSave": "off",
-    "go.lintTool": "golint",
-    "go.vetFlags": [],
-    "go.testFlags": [],
-    "go.buildFlags": [],
-    "go.buildTags": "",
-    "go.installDependenciesWhenBuilding": true,
-    "files.eol": "\n",
-    "editor.insertSpaces": true,
+    
+    // 전체 워크스페이스 파일 저장 안전성 설정
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 1000,
+    "files.hotExit": "onExitAndWindowClose",
+    "workbench.editor.restoreViewState": true,
+    "workbench.editor.enablePreview": false,
+    
+    // 모든 언어에 대한 포맷팅 설정
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
         "source.organizeImports": "explicit"
     },
+    
+    // 다중 언어 지원
     "files.associations": {
-        "*.go": "go"
-    },
-    "go.alternateTools": {},
-    "go.gocodePackageLookupMode": "go",
-    "go.gotoSymbol.includeImports": true,
-    "go.useCodeSnippetsOnFunctionSuggest": true,
-    "go.useCodeSnippetsOnFunctionSuggestWithoutType": true,
-    "go.docsTool": "godoc"
+        "*.dart": "dart",
+        "*.go": "go",
+        "pubspec.yaml": "yaml",
+        "go.mod": "go.mod",
+        "go.sum": "go.sum",
+        ".env": "plaintext"
+    }
 }

@@ -3,6 +3,12 @@
     "dart.flutterSdkPath": "",
     "dart.debugExternalPackageLibraries": false,
     "dart.debugSdkLibraries": false,
+    // 파일 저장 안전성 설정
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 1000,
+    "files.hotExit": "onExitAndWindowClose",
+    "workbench.editor.restoreViewState": true,
+    "workbench.editor.enablePreview": false,
     "dart.openDevTools": "flutter",
     "dart.previewFlutterUiGuides": true,
     "dart.previewFlutterUiGuidesCustomTracking": true,
