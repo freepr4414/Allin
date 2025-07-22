@@ -1,0 +1,6 @@
+# Flutter/Dart 관련
+**/build/
+**/.dart_tool/
+# Go 관련
+**/bin/
+**/*.exe

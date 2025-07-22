@@ -1,0 +1,123 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "infree - Web (Chrome)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "-d",
+                "chrome",
+                "--web-renderer",
+                "canvaskit"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "infree - Web (Edge)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "-d",
+                "edge",
+                "--web-renderer",
+                "canvaskit"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "infree - Windows Desktop",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "-d",
+                "windows"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "infree - Linux Desktop",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "-d",
+                "linux"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "infree - Android",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "-d",
+                "android"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "infree - Android (Profile)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "-d",
+                "android",
+                "--profile"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "infree - Android (Release)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "-d",
+                "android",
+                "--release"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "infree - iOS Simulator",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "-d",
+                "ios"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "infree - iOS (Profile)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "-d",
+                "ios",
+                "--profile"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "infree - iOS (Release)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "-d",
+                "ios",
+                "--release"
+            ],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

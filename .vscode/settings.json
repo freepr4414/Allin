@@ -1,0 +1,37 @@
+{
+    "go.toolsManagement.autoUpdate": true,
+    "go.useLanguageServer": true,
+    "go.languageServerExperimentalFeatures": {
+        "diagnostics": true,
+        "documentLink": true
+    },
+    "go.lintOnSave": "package",
+    "go.vetOnSave": "package",
+    "go.formatTool": "goimports",
+    "go.gocodeAutoBuild": true,
+    "go.goroot": "",
+    "go.gopath": "",
+    "go.inferGopath": true,
+    "go.buildOnSave": "off",
+    "go.lintTool": "golint",
+    "go.vetFlags": [],
+    "go.testFlags": [],
+    "go.buildFlags": [],
+    "go.buildTags": "",
+    "go.installDependenciesWhenBuilding": true,
+    "files.eol": "\n",
+    "editor.insertSpaces": true,
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+    },
+    "files.associations": {
+        "*.go": "go"
+    },
+    "go.alternateTools": {},
+    "go.gocodePackageLookupMode": "go",
+    "go.gotoSymbol.includeImports": true,
+    "go.useCodeSnippetsOnFunctionSuggest": true,
+    "go.useCodeSnippetsOnFunctionSuggestWithoutType": true,
+    "go.docsTool": "godoc"
+}

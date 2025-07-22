@@ -1,0 +1,109 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "naradevice - Windows Desktop",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "-d",
+                "windows"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "naradevice - Windows (Debug)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "-d",
+                "windows",
+                "--debug"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "naradevice - Linux Desktop",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "-d",
+                "linux"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "naradevice - Android",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "-d",
+                "android"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "naradevice - Android (Profile)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "-d",
+                "android",
+                "--profile"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "naradevice - Android (Release)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "-d",
+                "android",
+                "--release"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "naradevice - iOS Simulator",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "-d",
+                "ios"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "naradevice - iOS (Profile)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "-d",
+                "ios",
+                "--profile"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "naradevice - iOS (Release)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "-d",
+                "ios",
+                "--release"
+            ],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

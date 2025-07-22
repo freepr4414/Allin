@@ -1,0 +1,418 @@
+import 'dart:async';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:web_socket_channel/io.dart';
+import '../models/models.dart';
+
+class WebSocketService extends ChangeNotifier {
+  WebSocketChannel? _channel;
+  bool _connected = false;
+  String? _companyCode;
+  String? _userCode;
+  final List<Message> _messages = [];
+  final StreamController<Message> _messageController = StreamController<Message>.broadcast();
+  Timer? _reconnectTimer;
+  Timer? _pingTimer;
+  bool _shouldMaintainConnection = false;
+
+  // 연결 확인을 위한 타임아웃 타이머
+  Timer? _connectionVerificationTimer;
+  static const Duration connectionTimeout = Duration(seconds: 10); // 연결 타임아웃
+  // 재연결 시도 관련 변수
+  int _reconnectAttempts = 0;
+  static const Duration reconnectDelay = Duration(seconds: 5); // 고정된 재연결 지연 시간
+
+  // 메시지 중복 방지를 위한 최근 메시지 해시 캐시
+  final Map<String, DateTime> _processedMessages = {};
+  static const Duration messageCacheTTL = Duration(seconds: 30); // 중복 메시지 캐시 유지 시간
+
+  // 재연결 시도 횟수를 외부에서 접근할 수 있도록 getter 추가
+  int get reconnectAttempts => _reconnectAttempts;
+
+  bool get isConnected => _connected;
+  List<Message> get messages => List.unmodifiable(_messages);
+  Stream<Message> get messageStream => _messageController.stream;
+  String? get companyCode => _companyCode;
+  String? get userCode => _userCode;
+
+  Future<void> connect(String companyCode, String userCode) async {
+    _companyCode = companyCode;
+    _userCode = userCode;
+    _shouldMaintainConnection = true;
+
+    await _establishConnection();
+  }
+
+  Future<void> _establishConnection() async {
+    if (!_shouldMaintainConnection) {
+      print('[DISCONNECT] 연결 유지가 설정되지 않아 연결하지 않습니다.');
+      return;
+    }
+
+    if (_connected && _channel != null) {
+      print('[CONNECT] 이미 연결되어 있습니다.');
+      return;
+    }
+
+    _connected = false;
+
+    try {
+      print('[CONNECT] 웹소켓 서버에 연결 시도 중... (회사코드=$_companyCode, 유저코드=$_userCode)');
+      // 기존 타이머가 있으면 취소
+      _connectionVerificationTimer?.cancel();
+
+      final wsUrl = 'ws://localhost:8080/ws';
+      if (kIsWeb) {
+        _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
+      } else {
+        _channel = IOWebSocketChannel.connect(Uri.parse(wsUrl));
+      }
+
+      // 이 시점에서는 아직 연결이 완전히 확립되었다고 확신할 수 없음
+      // 연결 확인 타이머 설정
+      _connectionVerificationTimer = Timer(connectionTimeout, () {
+        if (!_connected) {
+          if (kDebugMode) {
+            print('Infree: 연결 타임아웃, 서버 응답 없음');
+          }
+          _handleDisconnect();
+        }
+      });
+
+      if (kDebugMode) {
+        print('웹소켓 채널 생성됨: $_channel');
+      }
+
+      // 연결 후 회사코드 및 사용자 정보 전송
+      final connectMessage = {
+        'type': 'connect',
+        'data': {'companyCode': _companyCode, 'userCode': _userCode, 'source': 'infree'},
+      };
+      _channel!.sink.add(jsonEncode(connectMessage));
+
+      // 메시지 수신 리스닝
+      _channel!.stream.listen(
+        (data) {
+          print('[RECV] WebSocket 메시지 수신: $data');
+          try {
+            if (kDebugMode) {
+              print('JSON 메시지 데이터 디코딩 시작');
+            }
+            final jsonData = jsonDecode(data);
+            if (kDebugMode) {
+              print('디코딩된 JSON 데이터: $jsonData');
+            }
+
+            // 첫 메시지를 받으면 연결이 확립된 것으로 간주
+            if (!_connected) {
+              _connected = true;
+              _connectionVerificationTimer?.cancel();
+              _reconnectAttempts = 0; // 재연결 시도 횟수 초기화
+              if (kDebugMode) {
+                print('Infree: 서버 연결 확인됨');
+              }
+              notifyListeners();
+            }
+
+            if (jsonData['type'] == 'message') {
+              if (kDebugMode) {
+                print('메시지 타입 감지: ${jsonData['type']}');
+                print('메시지 데이터: ${jsonData['data']}');
+                print('메시지 소스: ${jsonData['source']}');
+              }
+
+              // 메시지 데이터 처리
+              final messageData = jsonData['data'];
+              if (messageData != null) {
+                if (kDebugMode) {
+                  print('메시지 데이터 타입: ${messageData.runtimeType}');
+                  print('메시지 데이터 내용: $messageData');
+                }
+
+                // messageData가 이미 Map<String, dynamic>이면 그대로 사용
+                final Map<String, dynamic> msgMap;
+                if (messageData is Map) {
+                  msgMap = Map<String, dynamic>.from(messageData);
+                  if (kDebugMode) {
+                    print('메시지 데이터는 Map 형식입니다: $msgMap');
+                  }
+                } else if (messageData is String) {
+                  // 문자열로 전달된 경우 JSON 파싱
+                  try {
+                    if (kDebugMode) {
+                      print('메시지 데이터는 String 형식입니다: $messageData');
+                    }
+                    msgMap = jsonDecode(messageData);
+                  } catch (e) {
+                    if (kDebugMode) {
+                      print('String 형식 메시지 파싱 실패: $e');
+                      print('원본 문자열: $messageData');
+                    }
+                    return;
+                  }
+                } else {
+                  if (kDebugMode) {
+                    print('지원되지 않는 메시지 데이터 타입: ${messageData.runtimeType}');
+                  }
+                  return;
+                } // 출처 정보 확인
+                if (msgMap['source'] == null) {
+                  if (kDebugMode) {
+                    print('소스 정보가 없어 jsonData에서 가져오기 시도: ${jsonData['source']}');
+                  }
+                  msgMap['source'] = jsonData['source'] ?? 'unknown';
+                }
+
+                // 로컬 사용자가 보낸 메시지인지 확인
+                msgMap['isSent'] = msgMap['source'] == 'infree' && msgMap['userCode'] == _userCode;
+
+                // ASCII 원본 데이터 저장
+                msgMap['rawData'] = data;
+                if (kDebugMode) {
+                  print('최종 처리된 메시지 데이터: $msgMap');
+                }
+                try {
+                  // 메시지 중복 검사
+                  final messageHash = _createMessageHash(msgMap);
+                  if (_isMessageProcessed(messageHash)) {
+                    print('[RECV] 중복 메시지 감지: $messageHash - 무시됨');
+                    return;
+                  }
+                  // 메시지 처리됨으로 표시
+                  _markMessageAsProcessed(messageHash);
+                  final message = Message.fromJson(msgMap);
+                  print('[RECV] 메시지 객체 생성 및 목록 추가: $messageHash');
+                  _addMessage(message);
+                  print('[RECV] 메시지가 목록에 추가되었습니다 (총 ${_messages.length}개)');
+                } catch (e) {
+                  print('[RECV] 메시지 객체 생성 중 오류: ${e.toString()}');
+                  print('[RECV] 오류 발생 메시지 데이터: $msgMap');
+                }
+              }
+            } else if (jsonData['type'] == 'pong') {
+              // 서버로부터 pong 응답 처리
+              if (kDebugMode) {
+                print('Infree: 서버로부터 pong 수신');
+              }
+
+              // pong 응답을 받으면 서버가 살아있다는 증거이므로 연결 상태를 확인된 것으로 설정
+              if (!_connected) {
+                _connected = true;
+                _connectionVerificationTimer?.cancel();
+                notifyListeners();
+              }
+            } else if (jsonData['type'] == 'welcome') {
+              if (kDebugMode) {
+                print('서버 연결 성공 확인: ${jsonData['message']}');
+              }
+              _connected = true;
+              _connectionVerificationTimer?.cancel();
+              notifyListeners();
+            } else if (jsonData['type'] == 'connect_success') {
+              if (kDebugMode) {
+                print('연결 성공 응답 수신: ${jsonData['message']}');
+                if (jsonData['data'] != null && jsonData['data']['clientId'] != null) {
+                  print('할당된 클라이언트 ID: ${jsonData['data']['clientId']}');
+                }
+              }
+              _connected = true;
+              _connectionVerificationTimer?.cancel();
+              notifyListeners();
+            } else {
+              if (kDebugMode) {
+                print('알 수 없는 메시지 타입: ${jsonData['type']}');
+              }
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('Error parsing message: $e');
+              print('Raw message: $data');
+            }
+          }
+        },
+        onDone: () {
+          print('[DISCONNECT] 서버와의 연결이 끊어졌습니다.');
+          _connectionVerificationTimer?.cancel();
+          _handleDisconnect();
+        },
+        onError: (error) {
+          print('[DISCONNECT] WebSocket error: $error');
+          _connectionVerificationTimer?.cancel();
+          _handleDisconnect();
+        },
+      );
+
+      // 주기적인 ping 설정
+      _startPingTimer();
+
+      notifyListeners();
+      if (kDebugMode) {
+        print('웹소켓 서버에 연결 시도 완료, 응답 대기 중');
+      }
+    } catch (e) {
+      print('[DISCONNECT] Failed to connect to WebSocket: $e');
+      _connectionVerificationTimer?.cancel();
+      _connected = false;
+      _scheduleReconnect();
+    }
+  }
+
+  void sendMessage(String roomCode, String seatNumber, String powerNumber) {
+    if (!_connected || _channel == null || _companyCode == null || _userCode == null) {
+      print('[SEND] Cannot send message: Not connected');
+      return;
+    }
+
+    // 데이터 구성 - 바이너리 구조와 완전히 동일한 필드 순서
+    // [회사코드][사용자코드][소스][방코드][좌석번호][전원번호][타임스탬프]
+    final messageData = {'companyCode': _companyCode!, 'userCode': _userCode!, 'source': 'infree', 'roomCode': roomCode, 'seatNumber': seatNumber, 'powerNumber': powerNumber, 'timestamp': DateTime.now().toIso8601String()};
+
+    // JSON 메시지 생성 - 서버 형식에 맞게 구성
+    final jsonMessage = {'type': 'message', 'data': messageData};
+    final jsonString = jsonEncode(jsonMessage);
+
+    // 로컬 메시지 객체 생성 (isSent = true로 설정)
+    final localMsgData = Map<String, dynamic>.from(messageData);
+    localMsgData['isSent'] = true;
+    localMsgData['rawData'] = jsonString;
+
+    // 메시지 객체 생성
+    final message = Message.fromJson(localMsgData);
+
+    // 메시지 전송
+    _channel!.sink.add(jsonString);
+    print('[SEND] WebSocket 메시지 전송: $jsonString');
+
+    // 발신 메시지도 로컬 목록에 추가
+    _addMessage(message);
+  }
+
+  void disconnect() {
+    _shouldMaintainConnection = false;
+    _reconnectTimer?.cancel();
+    _pingTimer?.cancel();
+    _connectionVerificationTimer?.cancel();
+    if (_channel != null) {
+      _channel!.sink.close();
+      _channel = null;
+    }
+    _connected = false;
+    notifyListeners();
+  }
+
+  void _startPingTimer() {
+    _pingTimer?.cancel();
+    _pingTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      if (_connected && _channel != null) {
+        try {
+          final pingMessage = {'type': 'ping'};
+          _channel!.sink.add(jsonEncode(pingMessage));
+          if (kDebugMode) {
+            print('Sent ping to server');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Error sending ping: $e');
+          }
+        }
+      }
+    });
+  }
+
+  void _addMessage(Message message) {
+    _messages.add(message);
+    _messageController.add(message);
+    notifyListeners();
+  }
+
+  // 메시지 기록 초기화
+  void clearMessages() {
+    _messages.clear();
+    notifyListeners();
+    if (kDebugMode) {
+      print('메시지 기록이 초기화되었습니다.');
+    }
+  }
+
+  void _handleDisconnect() {
+    _connected = false;
+    notifyListeners();
+
+    if (_shouldMaintainConnection) {
+      if (kDebugMode) {
+        print('WebSocket connection lost. Attempting to reconnect...');
+      }
+      _scheduleReconnect();
+    }
+  }
+
+  void _scheduleReconnect() {
+    _reconnectTimer?.cancel();
+    _reconnectTimer = Timer(reconnectDelay, () {
+      if (_shouldMaintainConnection && _companyCode != null && _userCode != null) {
+        _reconnectAttempts++; // 재연결 시도 횟수 증가
+        if (kDebugMode) {
+          print('Infree: 재연결 시도 #$_reconnectAttempts, 지연 시간: ${reconnectDelay.inSeconds}초');
+        }
+
+        _establishConnection();
+      }
+    });
+  }
+
+  // 연결이 끊어졌을 때 연결 복원
+  Future<void> ensureConnected() async {
+    if (_shouldMaintainConnection && !_connected && _companyCode != null && _userCode != null) {
+      if (kDebugMode) {
+        print('Infree: 소켓 연결 복원 시도');
+      }
+      await _establishConnection();
+    }
+  }
+
+  // 메시지가 이미 처리되었는지 확인하는 헬퍼 메서드
+  bool _isMessageProcessed(String messageHash) {
+    final timestamp = _processedMessages[messageHash];
+    if (timestamp == null) {
+      return false;
+    }
+
+    // TTL이 지났으면 처리되지 않은 것으로 간주
+    if (DateTime.now().difference(timestamp) > messageCacheTTL) {
+      _processedMessages.remove(messageHash);
+      return false;
+    }
+
+    return true;
+  }
+
+  // 메시지를 처리됨으로 표시하는 헬퍼 메서드
+  void _markMessageAsProcessed(String messageHash) {
+    // 오래된 메시지 제거
+    _processedMessages.removeWhere((_, timestamp) => DateTime.now().difference(timestamp) > messageCacheTTL);
+
+    // 새 메시지 추가
+    _processedMessages[messageHash] = DateTime.now();
+  }
+
+  // 메시지에서 고유 해시 생성
+  String _createMessageHash(Map<String, dynamic> msgMap) {
+    // 메시지의 주요 필드 조합하여 고유 ID 생성
+    final companyCode = msgMap['companyCode'] ?? '';
+    final roomCode = msgMap['roomCode'] ?? '';
+    final seatNumber = msgMap['seatNumber'] ?? '';
+    final powerNumber = msgMap['powerNumber'] ?? '';
+    final timestamp = msgMap['timestamp'] ?? DateTime.now().millisecondsSinceEpoch.toString();
+
+    // 중복 방지를 위한 고유 해시 생성
+    return '$companyCode-$roomCode-$seatNumber-$powerNumber-$timestamp';
+  }
+
+  @override
+  void dispose() {
+    disconnect();
+    _messageController.close();
+    super.dispose();
+  }
+}

@@ -1,0 +1,53 @@
+{
+    "folders": [
+        {
+            "name": "shinnara",
+            "path": "./shinnara"
+        },
+        {
+            "name": "naracontrol",
+            "path": "./naracontrol"
+        },
+        {
+            "name": "naradevice",
+            "path": "./naradevice"
+        },
+        {
+            "name": "narabackend",
+            "path": "./narabackend"
+        },
+        {
+            "name": "naradbmake",
+            "path": "./naradbmake"
+        }
+    ],
+    "settings": {
+        "go.toolsManagement.autoUpdate": true,
+        "go.useLanguageServer": true,
+        "go.languageServerExperimentalFeatures": {
+            "diagnostics": true,
+            "documentLink": true
+        },
+        "go.lintOnSave": "package",
+        "go.vetOnSave": "package",
+        "go.formatTool": "goimports",
+        "go.gocodeAutoBuild": true,
+        "go.inferGopath": true,
+        "files.eol": "\n",
+        "editor.insertSpaces": true,
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        },
+        "files.associations": {
+            "*.go": "go"
+        }
+    },
+    "extensions": {
+        "recommendations": [
+            "golang.go",
+            "dart-code.flutter",
+            "dart-code.dart-code"
+        ]
+    }
+}

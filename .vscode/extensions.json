@@ -1,0 +1,24 @@
+{
+    "recommendations": [
+        // Go 개발 (naracontrol)
+        "golang.go",
+        "golang.go-nightly",
+        // Flutter 개발 (infree, naradevice)
+        "dart-code.dart-code",
+        "dart-code.flutter",
+        // Git 관리
+        "eamodio.gitlens",
+        "mhutchie.git-graph",
+        // JSON/YAML 지원
+        "ms-vscode.vscode-json",
+        "redhat.vscode-yaml",
+        // 유틸리티
+        "ms-vscode.powershell",
+        "formulahendry.auto-rename-tag",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        // 개발 도구
+        "ms-vscode.hexeditor",
+        "ms-vscode.test-adapter-converter"
+    ]
+}

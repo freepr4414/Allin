@@ -1,0 +1,16 @@
+[
+    {
+        "key": "ctrl+shift+r",
+        "command": "workbench.action.reloadWindow",
+        "when": "isDevelopment"
+    },
+    {
+        "key": "ctrl+shift+g",
+        "command": "git.refresh"
+    },
+    {
+        "key": "f5",
+        "command": "workbench.action.tasks.runTask",
+        "args": "Run naracontrol"
+    }
+]

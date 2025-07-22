@@ -1,0 +1,63 @@
+{
+    // naradevice Flutter 다중 플랫폼 프로젝트 설정 (웹 제외: 윈도우, 안드로이드, 리눅스, iOS)
+    "dart.flutterSdkPath": "",
+    "dart.debugExternalPackageLibraries": false,
+    "dart.debugSdkLibraries": false,
+    // 파일 저장 안전성 설정
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 1000,
+    "files.hotExit": "onExitAndWindowClose",
+    "workbench.editor.restoreViewState": true,
+    "workbench.editor.enablePreview": false,
+    "dart.openDevTools": "flutter",
+    "dart.previewFlutterUiGuides": true,
+    "dart.previewFlutterUiGuidesCustomTracking": true,
+    // 데스크톱 및 모바일 플랫폼 지원 설정 (웹 제외)
+    "dart.flutterCreatePlatforms": [
+        "windows",
+        "linux",
+        "android",
+        "ios"
+    ],
+    // 플랫폼별 실행 설정 (기본: Windows)
+    "dart.flutterRunAdditionalArgs": [
+        "--enable-software-rendering"
+    ],
+    // Android/iOS 개발 설정
+    "dart.flutterCreateAndroidLanguage": "kotlin",
+    "dart.flutterCreateIOSLanguage": "swift",
+    // 데스크톱 성능 최적화
+    "dart.flutterDesktopEmbed": true,
+    // 코드 포맷팅
+    "dart.lineLength": 100,
+    "editor.rulers": [
+        100
+    ],
+    // 다중 플랫폼 디버깅 설정
+    "dart.vmServicePort": 8182,
+    "dart.flutterHotReloadOnSave": "all",
+    // 파일 연결 설정
+    "files.associations": {
+        "*.dart": "dart",
+        "pubspec.yaml": "yaml",
+        "analysis_options.yaml": "yaml",
+        "CMakeLists.txt": "cmake"
+    },
+    // 플랫폼별 빌드 출력 제외 (웹 관련 제외)
+    "files.exclude": {
+        "**/build/": true,
+        "**/.dart_tool/": true,
+        "**/.packages": true,
+        "**/.metadata": true,
+        "**/android/.gradle/": true,
+        "**/android/app/build/": true,
+        "**/linux/build/": true,
+        "**/windows/build/": true,
+        "**/macos/build/": true,
+        "**/windows/runner/Release/": true,
+        "**/windows/runner/Debug/": true
+    },
+    // Windows 특화 설정
+    "cmake.buildDirectory": "${workspaceFolder}/build",
+    "cmake.configureOnOpen": false
+}

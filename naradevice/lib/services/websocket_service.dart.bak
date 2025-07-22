@@ -1,0 +1,289 @@
+import 'dart:async';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:web_socket_channel/io.dart';
+import '../models/models.dart';
+
+class WebSocketService extends ChangeNotifier {
+  WebSocketChannel? _channel;
+  bool _connected = false;
+  String? _companyCode;
+  String? _roomCode;
+  String? _seatNumber;
+  String? _powerNumber;
+  final List<Message> _messages = [];
+  final StreamController<Message> _messageController = StreamController<Message>.broadcast();
+  Timer? _reconnectTimer;
+  Timer? _pingTimer;
+  bool _shouldMaintainConnection = false; // 재연결 시도 관련 변수 추가
+  int _reconnectAttempts = 0;
+  static const Duration reconnectDelay = Duration(seconds: 5); // 고정된 재연결 지연 시간
+
+  // 재연결 시도 횟수를 외부에서 접근할 수 있도록 getter 추가
+  int get reconnectAttempts => _reconnectAttempts;
+
+  // 연결 확인을 위한 타임아웃 타이머
+  Timer? _connectionVerificationTimer;
+  static const Duration connectionTimeout = Duration(seconds: 10); // 연결 타임아웃
+
+  bool get isConnected => _connected;
+  List<Message> get messages => List.unmodifiable(_messages);
+  Stream<Message> get messageStream => _messageController.stream;
+  String? get companyCode => _companyCode;
+  Future<void> connect(String companyCode) async {
+    _companyCode = companyCode;
+    _roomCode = null;
+    _seatNumber = null;
+    _powerNumber = null;
+    _shouldMaintainConnection = true;
+
+    await _establishConnection();
+  }
+
+  Future<void> _establishConnection() async {
+    if (!_shouldMaintainConnection || _connected) return;
+
+    try {
+      if (kDebugMode) {
+        print('디바이스: 웹소켓 서버에 연결 시도 중...');
+      }
+
+      // 기존 타이머가 있으면 취소
+      _connectionVerificationTimer?.cancel();
+
+      final wsUrl = 'ws://localhost:8080/ws';
+      if (kIsWeb) {
+        _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
+      } else {
+        _channel = IOWebSocketChannel.connect(Uri.parse(wsUrl));
+      }
+
+      // 이 시점에서는 아직 연결이 완전히 확립되었다고 확신할 수 없음
+      // 연결 확인 타이머 설정
+      _connectionVerificationTimer = Timer(connectionTimeout, () {
+        if (!_connected) {
+          if (kDebugMode) {
+            print('디바이스: 연결 타임아웃, 서버 응답 없음');
+          }
+          _handleDisconnect();
+        }
+      });
+
+      // 연결 후 회사코드만 전송
+      final connectMessage = {
+        'type': 'connect',
+        'data': {
+          'companyCode': _companyCode,
+          'userCode': _companyCode, // 최소한의 식별자
+          'source': 'naradevice',
+        },
+      };
+      _channel!.sink.add(jsonEncode(connectMessage));
+
+      if (kDebugMode) {
+        print('디바이스: 회사코드 $_companyCode 로 연결 시도');
+      }
+
+      // 메시지 수신 리스닝
+      _channel!.stream.listen(
+        (data) {
+          try {
+            final jsonData = jsonDecode(data); // 첫 메시지를 받으면 연결이 확립된 것으로 간주
+            if (!_connected) {
+              _connected = true;
+              _connectionVerificationTimer?.cancel();
+              _reconnectAttempts = 0; // 재연결 시도 횟수 초기화
+              if (kDebugMode) {
+                print('디바이스: 서버 연결 확인됨');
+              }
+              notifyListeners();
+            }
+
+            if (jsonData['type'] == 'message') {
+              final messageData = jsonData['data'];
+              // 메시지에 출처 정보 추가
+              if (messageData['source'] == null) {
+                messageData['source'] = jsonData['source'] ?? 'unknown';
+              }
+
+              // 다른 소스에서 온 메시지는 수신 메시지로 표시
+              messageData['isSent'] = messageData['source'] == 'naradevice' && messageData['userCode'].toString().contains(_companyCode ?? '');
+
+              // ASCII 원본 데이터 저장
+              messageData['rawData'] = data;
+
+              final message = Message.fromJson(messageData);
+              _addMessage(message);
+            } else if (jsonData['type'] == 'pong') {
+              // 서버로부터 pong 응답 처리
+              if (kDebugMode) {
+                print('디바이스: 서버로부터 pong 수신');
+              }
+
+              // pong 응답을 받으면 서버가 살아있다는 증거이므로 연결 상태를 확인된 것으로 설정
+              if (!_connected) {
+                _connected = true;
+                _connectionVerificationTimer?.cancel();
+                notifyListeners();
+              }
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('디바이스: 메시지 파싱 오류: $e');
+            }
+          }
+        },
+        onDone: () {
+          _connectionVerificationTimer?.cancel();
+          _handleDisconnect();
+        },
+        onError: (error) {
+          _connectionVerificationTimer?.cancel();
+          if (kDebugMode) {
+            print('디바이스: 웹소켓 오류: $error');
+          }
+          _handleDisconnect();
+        },
+      );
+
+      // 주기적인 ping 설정
+      _startPingTimer();
+
+      notifyListeners();
+    } catch (e) {
+      _connectionVerificationTimer?.cancel();
+      if (kDebugMode) {
+        print('디바이스: 웹소켓 연결 실패: $e');
+      }
+      _connected = false;
+      _scheduleReconnect();
+    }
+  }
+
+  void _startPingTimer() {
+    _pingTimer?.cancel();
+    _pingTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      if (_connected && _channel != null) {
+        try {
+          final pingMessage = {'type': 'ping'};
+          _channel!.sink.add(jsonEncode(pingMessage));
+          if (kDebugMode) {
+            print('디바이스: 서버로 ping 전송');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('디바이스: ping 전송 오류: $e');
+          }
+        }
+      }
+    });
+  }
+
+  void sendMessage(String roomCode, String seatNumber, String powerNumber) {
+    if (!_connected || _channel == null || _companyCode == null) {
+      if (kDebugMode) {
+        print('디바이스: 메시지 전송 불가: 연결 안됨');
+      }
+      return;
+    }
+
+    // 데이터 구성
+    final messageData = {
+      'companyCode': _companyCode!,
+      'userCode': '$roomCode-$seatNumber-$powerNumber', // 디바이스 ID로 사용
+      'roomCode': roomCode,
+      'seatNumber': seatNumber,
+      'powerNumber': powerNumber,
+      'isSent': true,
+      'source': 'naradevice',
+    };
+
+    // JSON 메시지 생성
+    final jsonMessage = {'type': 'message', 'data': messageData};
+    final jsonString = jsonEncode(jsonMessage);
+
+    // ASCII 원본 데이터 저장
+    messageData['rawData'] = jsonString;
+
+    // 메시지 객체 생성
+    final message = Message.fromJson(messageData);
+
+    // 메시지 전송
+    _channel!.sink.add(jsonString);
+    if (kDebugMode) {
+      print('디바이스: 메시지 전송됨');
+    }
+
+    // 발신 메시지도 로컬 목록에 추가
+    _addMessage(message);
+  }
+
+  void disconnect() {
+    _shouldMaintainConnection = false;
+    _reconnectTimer?.cancel();
+    _pingTimer?.cancel();
+    _connectionVerificationTimer?.cancel();
+    if (_channel != null) {
+      _channel!.sink.close();
+      _channel = null;
+    }
+    _connected = false;
+    notifyListeners();
+    if (kDebugMode) {
+      print('디바이스: 웹소켓 연결 해제');
+    }
+  }
+
+  void _addMessage(Message message) {
+    _messages.add(message);
+    _messageController.add(message);
+    notifyListeners();
+    if (kDebugMode) {
+      print('디바이스: 새 메시지 수신: ${message.companyCode}, ${message.roomCode}, ${message.seatNumber}');
+    }
+  }
+
+  void _handleDisconnect() {
+    _connected = false;
+    notifyListeners();
+
+    if (_shouldMaintainConnection) {
+      if (kDebugMode) {
+        print('디바이스: 웹소켓 연결 끊김, 재연결 시도 예정');
+      }
+      _scheduleReconnect();
+    }
+  }
+
+  void _scheduleReconnect() {
+    _reconnectTimer?.cancel();
+    _reconnectTimer = Timer(reconnectDelay, () {
+      if (_shouldMaintainConnection && _companyCode != null) {
+        _reconnectAttempts++; // 재연결 시도 횟수 증가
+        if (kDebugMode) {
+          print('디바이스: 재연결 시도 #$_reconnectAttempts, 지연 시간: ${reconnectDelay.inSeconds}초');
+        }
+
+        _establishConnection();
+      }
+    });
+  }
+
+  // 연결이 끊어졌을 때 연결 복원
+  Future<void> ensureConnected() async {
+    if (_shouldMaintainConnection && !_connected && _companyCode != null && _roomCode != null && _seatNumber != null && _powerNumber != null) {
+      if (kDebugMode) {
+        print('디바이스: 소켓 연결 복원 시도');
+      }
+      await _establishConnection();
+    }
+  }
+
+  @override
+  void dispose() {
+    disconnect();
+    _messageController.close();
+    super.dispose();
+  }
+}
