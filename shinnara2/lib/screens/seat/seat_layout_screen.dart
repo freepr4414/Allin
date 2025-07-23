@@ -433,21 +433,50 @@ class _SeatLayoutScreenState extends ConsumerState<SeatLayoutScreen> {
             const SizedBox(height: 16),
             SizedBox(
               height: 200,
+              width: double.maxFinite,
               child: ListView.builder(
                 itemCount: availableSeats.length,
                 itemBuilder: (context, index) {
                   final targetSeat = availableSeats[index];
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.green,
-                      child: Text(targetSeat.number.toString()),
-                    ),
-                    title: Text('좌석 ${targetSeat.number}'),
-                    subtitle: Text(targetSeat.type.displayName),
+                  return InkWell(
                     onTap: () {
                       _moveSeat(context, ref, seat, targetSeat);
                       Navigator.of(context).pop();
                     },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: Colors.green,
+                            radius: 20,
+                            child: Text(
+                              targetSeat.number.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '좌석 ${targetSeat.number}',
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                                ),
+                                Text(
+                                  targetSeat.type.displayName,
+                                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   );
                 },
               ),
