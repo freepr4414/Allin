@@ -44,6 +44,12 @@ dependencies:
   # 아이콘
   font_awesome_flutter: ^10.7.0
 
+  # 반응형 레이아웃
+  flutter_screenutil: ^5.9.3
+
+  # 드래그 앤 드롭
+  draggable_widget: ^2.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

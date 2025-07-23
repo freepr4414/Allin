@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/seat.dart';
 import '../../providers/seat_provider.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/seat_widget.dart';
 
 class SeatLayoutScreen extends ConsumerStatefulWidget {
@@ -34,13 +35,16 @@ class _SeatLayoutScreenState extends ConsumerState<SeatLayoutScreen> {
     final seatStats = ref.watch(seatStatisticsProvider);
 
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      padding: EdgeInsets.all(Responsive.getResponsivePadding(context)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 좌석 배치 헤더
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            padding: EdgeInsets.symmetric(
+              horizontal: Responsive.getResponsivePadding(context),
+              vertical: Responsive.getResponsiveMargin(context),
+            ),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(8.0),
@@ -50,21 +54,31 @@ class _SeatLayoutScreenState extends ConsumerState<SeatLayoutScreen> {
             ),
             child: Row(
               children: [
-                Icon(Icons.event_seat, color: Theme.of(context).colorScheme.primary),
-                const SizedBox(width: 12.0),
-                const Text('좌석 현황', style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold)),
+                Icon(
+                  Icons.event_seat,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: Responsive.getResponsiveValue(context, mobile: 20, tablet: 24, desktop: 28),
+                ),
+                SizedBox(width: Responsive.getResponsiveMargin(context)),
+                Text(
+                  '좌석 현황',
+                  style: TextStyle(
+                    fontSize: Responsive.getResponsiveFontSize(context, baseFontSize: 18),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const Spacer(),
-                _buildSeatLegend(context, seatStats),
+                Flexible(child: _buildSeatLegend(context, seatStats)),
               ],
             ),
           ),
 
-          const SizedBox(height: 16.0),
+          SizedBox(height: Responsive.getResponsivePadding(context)),
 
           // 좌석 그리드
           Expanded(
             child: Container(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(Responsive.getResponsivePadding(context)),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(12.0),
@@ -81,17 +95,48 @@ class _SeatLayoutScreenState extends ConsumerState<SeatLayoutScreen> {
   }
 
   Widget _buildSeatLegend(BuildContext context, Map<SeatStatus, int> stats) {
-    return Wrap(
-      spacing: 16.0,
-      children: [
-        _buildLegendItem(context, '이용가능', Colors.green, stats[SeatStatus.available] ?? 0),
-        _buildLegendItem(context, '사용중', Colors.red, stats[SeatStatus.occupied] ?? 0),
-        _buildLegendItem(context, '예약됨', Colors.blue, stats[SeatStatus.reserved] ?? 0),
-        _buildLegendItem(context, '점검중', Colors.orange, stats[SeatStatus.maintenance] ?? 0),
-        _buildLegendItem(context, '청소중', Colors.purple, stats[SeatStatus.cleaning] ?? 0),
-        _buildLegendItem(context, '고장', Colors.grey, stats[SeatStatus.outOfOrder] ?? 0),
-      ],
-    );
+    if (Responsive.isMobile(context)) {
+      // 모바일에서는 2줄로 배치
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildLegendItem(context, '이용가능', Colors.green, stats[SeatStatus.available] ?? 0),
+              SizedBox(width: Responsive.getResponsiveMargin(context)),
+              _buildLegendItem(context, '사용중', Colors.red, stats[SeatStatus.occupied] ?? 0),
+              SizedBox(width: Responsive.getResponsiveMargin(context)),
+              _buildLegendItem(context, '예약됨', Colors.blue, stats[SeatStatus.reserved] ?? 0),
+            ],
+          ),
+          SizedBox(height: Responsive.getResponsiveMargin(context) / 2),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildLegendItem(context, '점검중', Colors.orange, stats[SeatStatus.maintenance] ?? 0),
+              SizedBox(width: Responsive.getResponsiveMargin(context)),
+              _buildLegendItem(context, '청소중', Colors.purple, stats[SeatStatus.cleaning] ?? 0),
+              SizedBox(width: Responsive.getResponsiveMargin(context)),
+              _buildLegendItem(context, '고장', Colors.grey, stats[SeatStatus.outOfOrder] ?? 0),
+            ],
+          ),
+        ],
+      );
+    } else {
+      // 태블릿/데스크탑에서는 한 줄로 배치
+      return Wrap(
+        spacing: Responsive.getResponsivePadding(context),
+        children: [
+          _buildLegendItem(context, '이용가능', Colors.green, stats[SeatStatus.available] ?? 0),
+          _buildLegendItem(context, '사용중', Colors.red, stats[SeatStatus.occupied] ?? 0),
+          _buildLegendItem(context, '예약됨', Colors.blue, stats[SeatStatus.reserved] ?? 0),
+          _buildLegendItem(context, '점검중', Colors.orange, stats[SeatStatus.maintenance] ?? 0),
+          _buildLegendItem(context, '청소중', Colors.purple, stats[SeatStatus.cleaning] ?? 0),
+          _buildLegendItem(context, '고장', Colors.grey, stats[SeatStatus.outOfOrder] ?? 0),
+        ],
+      );
+    }
   }
 
   Widget _buildLegendItem(BuildContext context, String label, Color color, int count) {
@@ -99,15 +144,15 @@ class _SeatLayoutScreenState extends ConsumerState<SeatLayoutScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 12.0,
-          height: 12.0,
+          width: Responsive.getResponsiveValue(context, mobile: 8.0, tablet: 10.0, desktop: 12.0),
+          height: Responsive.getResponsiveValue(context, mobile: 8.0, tablet: 10.0, desktop: 12.0),
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
-        const SizedBox(width: 4.0),
+        SizedBox(width: Responsive.getResponsiveMargin(context) / 2),
         Text(
           '$label ($count)',
           style: TextStyle(
-            fontSize: 12.0,
+            fontSize: Responsive.getResponsiveFontSize(context, baseFontSize: 12),
             color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
@@ -116,18 +161,30 @@ class _SeatLayoutScreenState extends ConsumerState<SeatLayoutScreen> {
   }
 
   Widget _buildSeatGrid(BuildContext context, WidgetRef ref, List<Seat> seats) {
-    return GridView.builder(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 8,
-        crossAxisSpacing: 12.0,
-        mainAxisSpacing: 12.0,
-        childAspectRatio: 1.0,
+    final crossAxisCount = Responsive.getSeatGridCount(context);
+    final spacing = Responsive.getResponsiveValue(
+      context,
+      mobile: 8.0,
+      tablet: 10.0,
+      desktop: 12.0,
+    );
+
+    return SingleChildScrollView(
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: crossAxisCount,
+          crossAxisSpacing: spacing,
+          mainAxisSpacing: spacing,
+          childAspectRatio: 1.0,
+        ),
+        itemCount: seats.length,
+        itemBuilder: (context, index) {
+          final seat = seats[index];
+          return _buildSeatWithPopup(context, ref, seat);
+        },
       ),
-      itemCount: seats.length,
-      itemBuilder: (context, index) {
-        final seat = seats[index];
-        return _buildSeatWithPopup(context, ref, seat);
-      },
     );
   }
 
@@ -136,7 +193,7 @@ class _SeatLayoutScreenState extends ConsumerState<SeatLayoutScreen> {
       builder: (BuildContext context) {
         return SeatWidget(
           seat: seat,
-          size: 80.0,
+          size: Responsive.getSeatSize(context),
           onTap: () => _showSeatPopupMenu(context, ref, seat),
         );
       },

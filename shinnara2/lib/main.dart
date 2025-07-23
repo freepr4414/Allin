@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'providers/auth_provider.dart';
 import 'screens/auth/login_screen.dart';
-import 'screens/main/main_layout.dart';
+import 'screens/main/main_layout_responsive.dart';
 
 void main() {
   runApp(const ProviderScope(child: StudyCafeApp()));
