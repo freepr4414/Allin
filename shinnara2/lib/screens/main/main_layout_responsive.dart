@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../layouts/responsive_layout.dart';
 import '../../providers/auth_provider.dart';
-import '../seat/seat_layout_screen.dart';
 
 class MainLayout extends ConsumerWidget {
   const MainLayout({super.key});
@@ -16,6 +15,6 @@ class MainLayout extends ConsumerWidget {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    return ResponsiveLayout(child: SeatLayoutScreen());
+    return const ResponsiveLayout();
   }
 }

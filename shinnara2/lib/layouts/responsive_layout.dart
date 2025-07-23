@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../providers/navigation_provider.dart';
 import '../providers/ui_provider.dart';
+import '../screens/dashboard/dashboard_screen.dart';
+import '../screens/members/member_list_screen.dart';
+import '../screens/members/payment_list_screen.dart';
+import '../screens/seat/seat_layout_screen.dart';
 import '../utils/responsive.dart';
 import '../widgets/horizontal_navigation_menu.dart';
 import '../widgets/navigation_menu.dart';
 import '../widgets/side_panel.dart';
 
 class ResponsiveLayout extends ConsumerStatefulWidget {
-  final Widget child;
-
-  const ResponsiveLayout({super.key, required this.child});
+  const ResponsiveLayout({super.key});
 
   @override
   ConsumerState<ResponsiveLayout> createState() => _ResponsiveLayoutState();
@@ -45,7 +48,7 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
               // 상단 헤더
               _buildHeader(),
               // 메인 콘텐츠
-              Expanded(child: widget.child),
+              Expanded(child: _getCurrentScreen()),
               // 하단 푸터
               _buildFooter(),
             ],
@@ -72,7 +75,7 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
               // 상단 헤더
               _buildHeader(),
               // 메인 콘텐츠
-              Expanded(child: widget.child),
+              Expanded(child: _getCurrentScreen()),
               // 하단 푸터
               _buildFooter(),
             ],
@@ -114,7 +117,7 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
                   child: Row(
                     children: [
                       // 중앙 콘텐츠 (좌측 사이드바 제거)
-                      Expanded(child: widget.child),
+                      Expanded(child: _getCurrentScreen()),
                       // 우측 사이드바 (조건부 표시)
                       if (_isRightSidebarOpen) SizedBox(width: 300, child: _buildRightSidebar()),
                     ],
@@ -515,5 +518,44 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
         ),
       ),
     );
+  }
+
+  // 현재 화면 반환
+  Widget _getCurrentScreen() {
+    final currentScreen = ref.watch(currentScreenProvider);
+
+    switch (currentScreen) {
+      case 'overview':
+      case 'reports':
+        return const DashboardScreen();
+      case 'seat_layout':
+      case 'seat_status':
+      case 'seat_history':
+        return const SeatLayoutScreen();
+      case 'member_list':
+        return const MemberListScreen();
+      case 'member_register':
+        return const Center(
+          child: Text(
+            '회원 등록 화면\n(구현 예정)',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        );
+      case 'member_payments':
+        return const PaymentListScreen();
+      case 'general':
+      case 'seat_config':
+      case 'notification':
+        return const Center(
+          child: Text(
+            '설정 화면\n(구현 예정)',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        );
+      default:
+        return const SeatLayoutScreen(); // 기본 화면
+    }
   }
 }

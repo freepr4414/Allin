@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../providers/navigation_provider.dart';
+
 class HorizontalMenuItem {
   final String id;
   final String title;
@@ -281,8 +283,13 @@ class _HorizontalNavigationMenuState extends ConsumerState<HorizontalNavigationM
     widget.onDropdownChanged?.call(null);
     widget.onDropdownContentChanged?.call(null);
 
-    // TODO: 페이지 네비게이션 구현
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$subItemId 선택됨')));
+    // 네비게이션 실행
+    ref.read(currentScreenProvider.notifier).navigateTo(subItemId);
+
+    // 성공 메시지 표시
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('$subItemId 화면으로 이동했습니다'), duration: const Duration(seconds: 1)),
+    );
   }
 
   void closeDropdown() {

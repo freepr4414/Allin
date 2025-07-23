@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../providers/navigation_provider.dart';
 import '../utils/responsive.dart';
 
 class NavigationMenu extends ConsumerStatefulWidget {
@@ -150,8 +151,16 @@ class _NavigationMenuState extends ConsumerState<NavigationMenu> {
         style: TextStyle(fontSize: Responsive.getResponsiveFontSize(context, baseFontSize: 13)),
       ),
       onTap: () {
-        // TODO: 페이지 네비게이션 구현
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${item.title} 선택됨')));
+        // 네비게이션 실행
+        ref.read(currentScreenProvider.notifier).navigateTo(item.id);
+
+        // 성공 메시지 표시
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${item.title} 화면으로 이동했습니다'),
+            duration: const Duration(seconds: 1),
+          ),
+        );
 
         // 메뉴 선택 시 콜백 호출 (사이드바 닫기용)
         widget.onMenuItemSelected?.call();
