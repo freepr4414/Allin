@@ -8,9 +8,10 @@ import '../screens/members/member_list_screen.dart';
 import '../screens/members/payment_list_screen.dart';
 import '../screens/seat/seat_layout_screen.dart';
 import '../utils/responsive.dart';
-import '../widgets/horizontal_navigation_menu.dart';
-import '../widgets/navigation_menu.dart';
 import '../widgets/side_panel.dart';
+import 'components/header/desktop_header.dart';
+import 'components/header/mobile_header.dart';
+import 'components/sidebar/sidebar_overlay.dart';
 
 class ResponsiveLayout extends ConsumerStatefulWidget {
   const ResponsiveLayout({super.key});
@@ -46,7 +47,29 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
           Column(
             children: [
               // 상단 헤더
-              _buildHeader(),
+              Container(
+                height: 60,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [const Color(0xFF3498DB), const Color(0xFF2980B9)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: MobileHeader(
+                  onToggleLeftSidebar: () =>
+                      setState(() => _isLeftSidebarOpen = !_isLeftSidebarOpen),
+                  onToggleRightSidebar: () =>
+                      setState(() => _isRightSidebarOpen = !_isRightSidebarOpen),
+                ),
+              ),
               // 메인 콘텐츠
               Expanded(child: _getCurrentScreen()),
               // 하단 푸터
@@ -54,11 +77,13 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
             ],
           ),
 
-          // 좌측 사이드바 오버레이 (모바일 - 전체 화면)
-          if (_isLeftSidebarOpen) _buildMobileSidebarOverlay(),
-
-          // 우측 사이드바 오버레이
-          if (_isRightSidebarOpen) _buildMobileRightSidebarOverlay(),
+          // 사이드바 오버레이
+          SidebarOverlay(
+            isLeftVisible: _isLeftSidebarOpen,
+            isRightVisible: _isRightSidebarOpen,
+            onToggleLeft: () => setState(() => _isLeftSidebarOpen = false),
+            onToggleRight: () => setState(() => _isRightSidebarOpen = false),
+          ),
         ],
       ),
     );
@@ -73,7 +98,29 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
           Column(
             children: [
               // 상단 헤더
-              _buildHeader(),
+              Container(
+                height: 60,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [const Color(0xFF3498DB), const Color(0xFF2980B9)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: MobileHeader(
+                  onToggleLeftSidebar: () =>
+                      setState(() => _isLeftSidebarOpen = !_isLeftSidebarOpen),
+                  onToggleRightSidebar: () =>
+                      setState(() => _isRightSidebarOpen = !_isRightSidebarOpen),
+                ),
+              ),
               // 메인 콘텐츠
               Expanded(child: _getCurrentScreen()),
               // 하단 푸터
@@ -81,11 +128,13 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
             ],
           ),
 
-          // 좌측 사이드바 오버레이 (태블릿 - 적당한 크기)
-          if (_isLeftSidebarOpen) _buildTabletSidebarOverlay(),
-
-          // 우측 사이드바 오버레이
-          if (_isRightSidebarOpen) _buildTabletRightSidebarOverlay(),
+          // 사이드바 오버레이
+          SidebarOverlay(
+            isLeftVisible: _isLeftSidebarOpen,
+            isRightVisible: _isRightSidebarOpen,
+            onToggleLeft: () => setState(() => _isLeftSidebarOpen = false),
+            onToggleRight: () => setState(() => _isRightSidebarOpen = false),
+          ),
         ],
       ),
     );
@@ -164,95 +213,16 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
           ),
         ],
       ),
-      child: Responsive.isDesktop(context) ? _buildDesktopHeader() : _buildMobileTabletHeader(),
-    );
-  }
-
-  Widget _buildDesktopHeader() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: Responsive.getResponsivePadding(context)),
-      child: Row(
-        children: [
-          // 로고/타이틀 (호버 효과 추가)
-          MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: GestureDetector(
-              onTap: () {
-                // TODO: 홈페이지로 이동 또는 새로고침
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('홈으로 이동')));
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(4)),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  child: Text(
-                    'Study Cafe Manager',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: Responsive.getResponsiveFontSize(context, baseFontSize: 20),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          const SizedBox(width: 40), // 로고와 메뉴 사이 간격
-          // 가로 메뉴 (중앙)
-          Expanded(
-            child: HorizontalNavigationMenu(
-              onDropdownChanged: (dropdownId) {
-                setState(() {
-                  _isDropdownOpen = dropdownId != null;
-                });
-              },
-              onDropdownContentChanged: (content) {
-                setState(() {
-                  _dropdownContent = content;
-                });
-              },
-              onRegisterCloseCallback: (closeCallback) {
-                _closeMenuDropdown = closeCallback;
-              },
-            ),
-          ),
-
-          // 우측 액션 버튼들 (호버 효과 추가)
-          Row(
-            children: [
-              _buildHoverIconButton(
-                icon: Icons.notifications,
-                tooltip: '알림',
-                onPressed: () {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(const SnackBar(content: Text('알림 기능')));
-                },
-              ),
-              _buildHoverIconButton(
-                icon: Icons.settings,
-                tooltip: '설정',
-                onPressed: () {
-                  setState(() {
-                    _isRightSidebarOpen = !_isRightSidebarOpen;
-                  });
-                },
-              ),
-              _buildHoverIconButton(
-                icon: Icons.account_circle,
-                tooltip: '계정',
-                onPressed: () {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(const SnackBar(content: Text('계정 메뉴')));
-                },
-              ),
-            ],
-          ),
-        ],
-      ),
+      child: Responsive.isDesktop(context)
+          ? DesktopHeader(
+              onToggleRightSidebar: () =>
+                  setState(() => _isRightSidebarOpen = !_isRightSidebarOpen),
+              onDropdownChanged: (dropdownId) =>
+                  setState(() => _isDropdownOpen = dropdownId != null),
+              onDropdownContentChanged: (content) => setState(() => _dropdownContent = content),
+              onRegisterCloseCallback: (closeCallback) => _closeMenuDropdown = closeCallback,
+            )
+          : _buildMobileTabletHeader(),
     );
   }
 
@@ -324,147 +294,6 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
   }
 
   // 모바일 사이드바 오버레이 (전체 화면)
-  Widget _buildMobileSidebarOverlay() {
-    return GestureDetector(
-      onTap: () => setState(() => _isLeftSidebarOpen = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        color: Colors.black.withValues(alpha: 0.5),
-        child: Row(
-          children: [
-            // 사이드바 (85% 너비)
-            GestureDetector(
-              onTap: () {}, // 사이드바 클릭 시 닫히지 않도록
-              child: Container(
-                width: MediaQuery.of(context).size.width * 0.85, // 85% 너비
-                height: double.infinity,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      blurRadius: 8,
-                      offset: const Offset(2, 0),
-                    ),
-                  ],
-                ),
-                child: NavigationMenu(
-                  onMenuItemSelected: () => setState(() => _isLeftSidebarOpen = false),
-                ),
-              ),
-            ),
-            // 빈 공간 (탭하면 닫기)
-            Expanded(child: Container()),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // 모바일 우측 사이드바 오버레이
-  Widget _buildMobileRightSidebarOverlay() {
-    return GestureDetector(
-      onTap: () => setState(() => _isRightSidebarOpen = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        color: Colors.black.withValues(alpha: 0.5),
-        child: Row(
-          children: [
-            // 빈 공간 (탭하면 닫기)
-            Expanded(child: Container()),
-            // 사이드바
-            Container(
-              width: MediaQuery.of(context).size.width * 0.85,
-              height: double.infinity,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 8,
-                    offset: const Offset(-2, 0),
-                  ),
-                ],
-              ),
-              child: SidePanel(type: SidePanelType.settings),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // 태블릿 사이드바 오버레이 (고정 너비)
-  Widget _buildTabletSidebarOverlay() {
-    return GestureDetector(
-      onTap: () => setState(() => _isLeftSidebarOpen = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        color: Colors.black.withValues(alpha: 0.3),
-        child: Row(
-          children: [
-            // 사이드바 (고정 너비)
-            GestureDetector(
-              onTap: () {}, // 사이드바 클릭 시 닫히지 않도록
-              child: Container(
-                width: 320, // 태블릿에서 적당한 크기
-                height: double.infinity,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      blurRadius: 8,
-                      offset: const Offset(2, 0),
-                    ),
-                  ],
-                ),
-                child: NavigationMenu(
-                  onMenuItemSelected: () => setState(() => _isLeftSidebarOpen = false),
-                ),
-              ),
-            ),
-            // 빈 공간 (탭하면 닫기)
-            Expanded(child: Container()),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // 태블릿 우측 사이드바 오버레이
-  Widget _buildTabletRightSidebarOverlay() {
-    return GestureDetector(
-      onTap: () => setState(() => _isRightSidebarOpen = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        color: Colors.black.withValues(alpha: 0.3),
-        child: Row(
-          children: [
-            // 빈 공간 (탭하면 닫기)
-            Expanded(child: Container()),
-            // 사이드바
-            Container(
-              width: 320,
-              height: double.infinity,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 8,
-                    offset: const Offset(-2, 0),
-                  ),
-                ],
-              ),
-              child: SidePanel(type: SidePanelType.settings),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildFooter() {
     return Container(
       height: Responsive.getResponsiveValue(context, mobile: 40, tablet: 50, desktop: 60),
@@ -490,34 +319,6 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
     if (_dropdownContent == null) return const SizedBox.shrink();
 
     return _dropdownContent!;
-  }
-
-  // 호버 효과가 있는 아이콘 버튼 위젯
-  Widget _buildHoverIconButton({
-    required IconData icon,
-    required String tooltip,
-    required VoidCallback onPressed,
-  }) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: Tooltip(
-        message: tooltip,
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onPressed,
-            borderRadius: BorderRadius.circular(20),
-            hoverColor: Colors.white.withValues(alpha: 0.1),
-            splashColor: Colors.white.withValues(alpha: 0.2),
-            highlightColor: Colors.white.withValues(alpha: 0.05),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              child: Icon(icon, color: Colors.white, size: 24),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   // 현재 화면 반환
