@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 
+import '../../../models/unified_menu_models.dart';
 import '../../../utils/responsive.dart';
 import '../../../widgets/common/hover_icon_button.dart';
-import '../../../widgets/horizontal_navigation_menu.dart';
+import '../../../widgets/unified_menu_widget.dart';
 
 /// 데스크톱용 헤더 컴포넌트
 class DesktopHeader extends StatelessWidget {
   final Function(String?) onDropdownChanged;
   final Function(Widget?) onDropdownContentChanged;
   final Function(VoidCallback) onRegisterCloseCallback;
+  final Function(double) onDropdownPositionChanged; // 위치 콜백 추가
   final VoidCallback onToggleRightSidebar;
 
   const DesktopHeader({
@@ -16,6 +18,7 @@ class DesktopHeader extends StatelessWidget {
     required this.onDropdownChanged,
     required this.onDropdownContentChanged,
     required this.onRegisterCloseCallback,
+    required this.onDropdownPositionChanged,
     required this.onToggleRightSidebar,
   });
 
@@ -52,12 +55,14 @@ class DesktopHeader extends StatelessWidget {
           ),
 
           const SizedBox(width: 40), // 로고와 메뉴 사이 간격
-          // 가로 메뉴 (중앙)
+          // 가로 메뉴 (중앙) - 통합 메뉴 사용
           Expanded(
-            child: HorizontalNavigationMenu(
+            child: UnifiedMenu(
+              displayType: MenuDisplayType.horizontal,
               onDropdownChanged: onDropdownChanged,
               onDropdownContentChanged: onDropdownContentChanged,
               onRegisterCloseCallback: onRegisterCloseCallback,
+              onDropdownPositionChanged: onDropdownPositionChanged, // 위치 콜백 전달
             ),
           ),
 

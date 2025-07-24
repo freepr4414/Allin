@@ -162,32 +162,92 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // 빠른 로그인 버튼들
+                // 5단계 권한 레벨 테스트 계정 안내
                 Text(
-                  '빠른 로그인',
+                  '권한별 테스트 계정',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 12),
-                Row(
+                Column(
                   children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          _usernameController.text = 'admin';
-                          _passwordController.text = 'admin';
-                        },
-                        child: const Text('관리자'),
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {
+                              _usernameController.text = 'admin';
+                              _passwordController.text = 'admin';
+                            },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.red[700],
+                              side: BorderSide(color: Colors.red[300]!),
+                            ),
+                            child: const Text(
+                              '최고 관리자\n(Level 1)',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {
+                              _usernameController.text = 'manager';
+                              _passwordController.text = 'manager';
+                            },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.orange[700],
+                              side: BorderSide(color: Colors.orange[300]!),
+                            ),
+                            child: const Text(
+                              '상급 관리자\n(Level 2)',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 12),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          _usernameController.text = 'user';
-                          _passwordController.text = 'user';
-                        },
-                        child: const Text('사용자'),
-                      ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {
+                              _usernameController.text = 'staff';
+                              _passwordController.text = 'staff';
+                            },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.green[700],
+                              side: BorderSide(color: Colors.green[300]!),
+                            ),
+                            child: const Text(
+                              '일반 직원\n(Level 4)',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {
+                              _usernameController.text = 'user';
+                              _passwordController.text = 'user';
+                            },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.grey[700],
+                              side: BorderSide(color: Colors.grey[400]!),
+                            ),
+                            child: const Text(
+                              '제한된 직원\n(Level 5)',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 12),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

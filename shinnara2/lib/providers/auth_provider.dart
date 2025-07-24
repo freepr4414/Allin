@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../models/unified_menu_models.dart';
 import '../models/user.dart';
 
 class AuthState {
@@ -23,23 +24,45 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   Future<void> login(String username, String password) async {
     try {
-      // 간단한 로그인 로직
+      // 다양한 권한 레벨 사용자 로그인 지원
       if (username == 'admin' && password == 'admin') {
         final user = User(
           id: '1',
           username: 'admin',
-          name: '관리자',
+          name: '최고 관리자',
           type: UserType.admin,
           status: UserStatus.active,
+          permissionLevel: PermissionLevel.level1,
+        );
+        state = state.copyWith(isAuthenticated: true, user: user, error: null);
+      } else if (username == 'manager' && password == 'manager') {
+        final user = User(
+          id: '2',
+          username: 'manager',
+          name: '상급 관리자',
+          type: UserType.staff,
+          status: UserStatus.active,
+          permissionLevel: PermissionLevel.level2,
+        );
+        state = state.copyWith(isAuthenticated: true, user: user, error: null);
+      } else if (username == 'staff' && password == 'staff') {
+        final user = User(
+          id: '3',
+          username: 'staff',
+          name: '일반 직원',
+          type: UserType.staff,
+          status: UserStatus.active,
+          permissionLevel: PermissionLevel.level4,
         );
         state = state.copyWith(isAuthenticated: true, user: user, error: null);
       } else if (username == 'user' && password == 'user') {
         final user = User(
-          id: '2',
+          id: '4',
           username: 'user',
-          name: '사용자',
+          name: '제한된 사용자',
           type: UserType.member,
           status: UserStatus.active,
+          permissionLevel: PermissionLevel.level5,
         );
         state = state.copyWith(isAuthenticated: true, user: user, error: null);
       } else {

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../models/unified_menu_models.dart';
+import '../models/unified_route_registry.dart';
+import '../providers/auth_provider.dart';
 import '../providers/navigation_provider.dart';
 import '../providers/ui_provider.dart';
-import '../screens/dashboard/dashboard_screen.dart';
-import '../screens/members/member_list_screen.dart';
-import '../screens/members/payment_list_screen.dart';
-import '../screens/seat/seat_layout_screen.dart';
 import '../utils/responsive.dart';
 import '../widgets/side_panel.dart';
 import 'components/header/desktop_header.dart';
@@ -26,6 +25,7 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
   bool _isDropdownOpen = false;
   Widget? _dropdownContent;
   VoidCallback? _closeMenuDropdown;
+  double _dropdownLeft = 0; // 드롭다운 위치 추가
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +57,7 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -108,7 +108,7 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -185,8 +185,7 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
                   tablet: 65,
                   desktop: 75,
                 ), // 헤더보다 5px 위로 올림
-                left: 0,
-                right: 0,
+                left: _dropdownLeft, // 메뉴별 위치 적용
                 child: _buildDropdownArea(),
               ),
           ],
@@ -221,6 +220,7 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
                   setState(() => _isDropdownOpen = dropdownId != null),
               onDropdownContentChanged: (content) => setState(() => _dropdownContent = content),
               onRegisterCloseCallback: (closeCallback) => _closeMenuDropdown = closeCallback,
+              onDropdownPositionChanged: (left) => setState(() => _dropdownLeft = left), // 위치 콜백 추가
             )
           : _buildMobileTabletHeader(),
     );
@@ -321,42 +321,15 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
     return _dropdownContent!;
   }
 
-  // 현재 화면 반환
+  // 현재 화면 반환 (중앙화된 라우트 시스템 사용)
   Widget _getCurrentScreen() {
     final currentScreen = ref.watch(currentScreenProvider);
+    final authState = ref.watch(authProvider);
 
-    switch (currentScreen) {
-      case 'overview':
-      case 'reports':
-        return const DashboardScreen();
-      case 'seat_layout':
-      case 'seat_status':
-      case 'seat_history':
-        return const SeatLayoutScreen();
-      case 'member_list':
-        return const MemberListScreen();
-      case 'member_register':
-        return const Center(
-          child: Text(
-            '회원 등록 화면\n(구현 예정)',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-        );
-      case 'member_payments':
-        return const PaymentListScreen();
-      case 'general':
-      case 'seat_config':
-      case 'notification':
-        return const Center(
-          child: Text(
-            '설정 화면\n(구현 예정)',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-        );
-      default:
-        return const SeatLayoutScreen(); // 기본 화면
-    }
+    // 사용자 권한 레벨 가져오기
+    final userLevel = authState.user?.permissionLevel ?? PermissionLevel.level5;
+
+    // 중앙화된 라우트 시스템을 통해 페이지 빌드
+    return RouteRegistry.buildPage(currentScreen, userLevel);
   }
 }

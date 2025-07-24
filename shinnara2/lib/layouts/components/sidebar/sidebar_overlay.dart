@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../models/unified_menu_models.dart';
 import '../../../providers/ui_provider.dart';
 import '../../../utils/responsive.dart';
-import '../../../widgets/navigation_menu.dart';
 import '../../../widgets/side_panel.dart';
+import '../../../widgets/unified_menu_widget.dart';
 
 /// 사이드바 오버레이 컴포넌트 (모바일/태블릿용)
 class SidebarOverlay extends ConsumerWidget {
@@ -42,7 +43,7 @@ class SidebarOverlay extends ConsumerWidget {
       onTap: onToggleLeft,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        color: Colors.black.withOpacity(isTablet ? 0.3 : 0.5),
+        color: Colors.black.withValues(alpha: isTablet ? 0.3 : 0.5),
         child: Row(
           children: [
             GestureDetector(
@@ -54,13 +55,16 @@ class SidebarOverlay extends ConsumerWidget {
                   color: Theme.of(context).colorScheme.surface,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withValues(alpha: 0.2),
                       blurRadius: 8,
                       offset: const Offset(2, 0),
                     ),
                   ],
                 ),
-                child: NavigationMenu(onMenuItemSelected: onToggleLeft),
+                child: UnifiedMenu(
+                  displayType: MenuDisplayType.sidebar,
+                  onMenuItemSelected: onToggleLeft,
+                ),
               ),
             ),
             Expanded(child: Container()),
@@ -78,7 +82,7 @@ class SidebarOverlay extends ConsumerWidget {
       onTap: onToggleRight,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        color: Colors.black.withOpacity(isTablet ? 0.3 : 0.5),
+        color: Colors.black.withValues(alpha: isTablet ? 0.3 : 0.5),
         child: Row(
           children: [
             Expanded(child: Container()),
@@ -89,7 +93,7 @@ class SidebarOverlay extends ConsumerWidget {
                 color: Theme.of(context).colorScheme.surface,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withValues(alpha: 0.2),
                     blurRadius: 8,
                     offset: const Offset(-2, 0),
                   ),

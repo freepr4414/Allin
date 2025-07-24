@@ -1,3 +1,5 @@
+import 'unified_menu_models.dart';
+
 enum UserType {
   admin,
   staff,
@@ -46,6 +48,7 @@ class User {
   final String? phone;
   final UserType type;
   final UserStatus status;
+  final PermissionLevel permissionLevel; // 추가: 5단계 권한 레벨
   final DateTime? createdAt;
   final DateTime? lastLoginAt;
 
@@ -57,6 +60,7 @@ class User {
     this.phone,
     required this.type,
     required this.status,
+    required this.permissionLevel,
     this.createdAt,
     this.lastLoginAt,
   });
@@ -69,6 +73,7 @@ class User {
     String? phone,
     UserType? type,
     UserStatus? status,
+    PermissionLevel? permissionLevel,
     DateTime? createdAt,
     DateTime? lastLoginAt,
   }) {
@@ -80,6 +85,7 @@ class User {
       phone: phone ?? this.phone,
       type: type ?? this.type,
       status: status ?? this.status,
+      permissionLevel: permissionLevel ?? this.permissionLevel,
       createdAt: createdAt ?? this.createdAt,
       lastLoginAt: lastLoginAt ?? this.lastLoginAt,
     );
@@ -87,7 +93,7 @@ class User {
 
   @override
   String toString() {
-    return 'User(id: $id, username: $username, name: $name, type: $type, status: $status)';
+    return 'User(id: $id, username: $username, name: $name, type: $type, status: $status, permissionLevel: $permissionLevel)';
   }
 
   @override

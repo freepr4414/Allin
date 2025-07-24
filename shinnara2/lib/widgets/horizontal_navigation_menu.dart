@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/navigation_provider.dart';
+import '../screens/seat_layout_editor.dart';
 
 class HorizontalMenuItem {
   final String id;
@@ -83,6 +84,15 @@ class _HorizontalNavigationMenuState extends ConsumerState<HorizontalNavigationM
         HorizontalSubMenuItem(id: 'general', title: '일반 설정'),
         HorizontalSubMenuItem(id: 'seat_config', title: '좌석 설정'),
         HorizontalSubMenuItem(id: 'notification', title: '알림 설정'),
+      ],
+    ),
+    HorizontalMenuItem(
+      id: 'admin',
+      title: '관리자 기능',
+      icon: Icons.admin_panel_settings,
+      children: [
+        HorizontalSubMenuItem(id: 'seat_layout_editor', title: '좌석 배치도 편집'),
+        HorizontalSubMenuItem(id: 'system_settings', title: '시스템 설정'),
       ],
     ),
   ];
@@ -283,7 +293,23 @@ class _HorizontalNavigationMenuState extends ConsumerState<HorizontalNavigationM
     widget.onDropdownChanged?.call(null);
     widget.onDropdownContentChanged?.call(null);
 
-    // 네비게이션 실행
+    // 좌석배치도편집은 전체 화면으로 실행 (Navigator.push 사용)
+    if (subItemId == 'seat_layout_editor') {
+      // Navigator.push를 사용해 전체화면으로 이동
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const SeatLayoutEditor(),
+          fullscreenDialog: true, // 전체화면 다이얼로그 스타일
+        ),
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('좌석 배치도 편집 화면으로 이동했습니다'), duration: Duration(seconds: 1)),
+      );
+      return; // 여기서 함수 종료 - 중앙집중 네비게이션 실행 방지
+    }
+
+    // 나머지는 기존 중앙집중 방식 (seat_layout_editor가 아닌 경우에만 실행)
     ref.read(currentScreenProvider.notifier).navigateTo(subItemId);
 
     // 성공 메시지 표시

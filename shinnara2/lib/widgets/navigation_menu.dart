@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../models/unified_menu_models.dart';
+import '../providers/auth_provider.dart';
 import '../providers/navigation_provider.dart';
 import '../utils/responsive.dart';
 
@@ -151,8 +153,10 @@ class _NavigationMenuState extends ConsumerState<NavigationMenu> {
         style: TextStyle(fontSize: Responsive.getResponsiveFontSize(context, baseFontSize: 13)),
       ),
       onTap: () {
-        // 네비게이션 실행
-        ref.read(currentScreenProvider.notifier).navigateTo(item.id);
+        // 권한 기반 네비게이션 실행
+        final authState = ref.read(authProvider);
+        final userLevel = authState.user?.permissionLevel ?? PermissionLevel.level5;
+        ref.read(currentScreenProvider.notifier).navigateWithPermission(item.id, userLevel);
 
         // 성공 메시지 표시
         ScaffoldMessenger.of(context).showSnackBar(
