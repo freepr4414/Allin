@@ -41,8 +41,8 @@ class SeatLayoutNotifier extends StateNotifier<SeatLayoutData> {
         Seat(
           id: 'seat_$i',
           number: i.toString(),
-          x: 100.0 + (i - startNumber) * 60.0,
-          y: 100.0,
+          x: 0.0, // 모든 좌석을 left 0에 생성
+          y: 0.0, // 모든 좌석을 top 0에 생성
           width: SeatLayoutConstants.defaultSeatWidth,
           height: SeatLayoutConstants.defaultSeatHeight,
           rotation: 0.0,
@@ -71,6 +71,24 @@ class SeatLayoutNotifier extends StateNotifier<SeatLayoutData> {
     }).toList();
 
     state = state.copyWith(seats: updatedSeats);
+
+    // 선택된 좌석을 최상위로 올리기
+    bringToFront(seatId);
+  }
+
+  /// 좌석을 최상위로 올리기
+  void bringToFront(String seatId) {
+    final seatIndex = state.seats.indexWhere((seat) => seat.id == seatId);
+    if (seatIndex == -1 || seatIndex == state.seats.length - 1) {
+      return; // 좌석을 찾을 수 없거나 이미 최상위에 있는 경우
+    }
+
+    final seat = state.seats[seatIndex];
+    final newSeats = List<Seat>.from(state.seats);
+    newSeats.removeAt(seatIndex);
+    newSeats.add(seat); // 리스트 끝에 추가하여 최상위로 만들기
+
+    state = state.copyWith(seats: newSeats);
   }
 
   /// 모든 좌석 선택 해제

@@ -10,6 +10,12 @@ final keyboardHandlerProvider = Provider<KeyboardHandler>((ref) {
   return KeyboardHandler(ref);
 });
 
+/// Ctrl 키 상태를 추적하는 프로바이더
+final ctrlKeyStateProvider = StateProvider<bool>((ref) => false);
+
+/// 이동간격을 관리하는 프로바이더
+final moveStepProvider = StateProvider<double>((ref) => SeatLayoutConstants.moveStep);
+
 /// 키보드 이벤트 핸들러 클래스
 class KeyboardHandler {
   final Ref ref;
@@ -18,9 +24,12 @@ class KeyboardHandler {
 
   /// 키보드 이벤트 처리
   KeyEventResult handleKeyEvent(FocusNode node, KeyEvent event) {
+    // Ctrl 키 상태 업데이트
+    final isCtrlPressed = HardwareKeyboard.instance.isControlPressed;
+    ref.read(ctrlKeyStateProvider.notifier).state = isCtrlPressed;
+
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
-    final isCtrlPressed = HardwareKeyboard.instance.isControlPressed;
     final isShiftPressed = HardwareKeyboard.instance.isShiftPressed;
 
     if (isCtrlPressed && !isShiftPressed) {
@@ -34,7 +43,7 @@ class KeyboardHandler {
 
   /// 이동 키 처리 (Ctrl + 방향키)
   KeyEventResult _handleMoveKeys(KeyEvent event) {
-    const step = SeatLayoutConstants.moveStep;
+    final step = ref.read(moveStepProvider); // 설정된 이동간격 사용
 
     switch (event.logicalKey) {
       case LogicalKeyboardKey.arrowLeft:

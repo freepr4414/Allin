@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../constants/seat_layout_constants.dart';
+import '../utils/keyboard_handler.dart';
 
 /// 좌석 배치도 설정 팝업
 class SettingsPopupWidget extends ConsumerStatefulWidget {
@@ -35,10 +36,14 @@ class _SettingsPopupWidgetState extends ConsumerState<SettingsPopupWidget> {
   late final TextEditingController _seatWidthController;
   late final TextEditingController _seatHeightController;
   late final TextEditingController _rotationController;
+  late final TextEditingController _moveStepController; // 이동간격 컨트롤러 추가
 
-  // 드래그 관련 상태
-  double _popupX = 16;
-  double _popupY = 70;
+  // 팝업 위치
+  double _popupX = 100.0;
+  double _popupY = 100.0;
+
+  // 팝업 크기 측정을 위한 GlobalKey
+  final GlobalKey _popupKey = GlobalKey();
 
   @override
   void initState() {
@@ -60,6 +65,7 @@ class _SettingsPopupWidgetState extends ConsumerState<SettingsPopupWidget> {
       text: SeatLayoutConstants.defaultSeatHeight.toString(),
     );
     _rotationController = TextEditingController(text: '0');
+    _moveStepController = TextEditingController(text: SeatLayoutConstants.moveStep.toString());
   }
 
   @override
@@ -73,6 +79,7 @@ class _SettingsPopupWidgetState extends ConsumerState<SettingsPopupWidget> {
     _seatWidthController.dispose();
     _seatHeightController.dispose();
     _rotationController.dispose();
+    _moveStepController.dispose();
     super.dispose();
   }
 
@@ -90,13 +97,30 @@ class _SettingsPopupWidgetState extends ConsumerState<SettingsPopupWidget> {
             // 화면 경계 제한
             final screenSize = MediaQuery.of(context).size;
             const popupWidth = SeatLayoutConstants.popupMaxWidth;
-            const popupHeight = SeatLayoutConstants.popupMaxHeight;
+
+            // 실제 렌더링된 높이를 사용하거나 보다 작은 예상 높이 사용
+            double popupHeight = SeatLayoutConstants.popupMaxHeight;
+
+            // RenderBox를 통해 실제 높이 확인 시도
+            if (_popupKey.currentContext != null) {
+              final RenderBox? renderBox =
+                  _popupKey.currentContext!.findRenderObject() as RenderBox?;
+              if (renderBox != null) {
+                popupHeight = renderBox.size.height;
+              }
+            }
+
+            // 만약 실제 높이를 못 구했다면, 가로 배치로 인한 예상 높이 사용 (더 작은 값)
+            if (popupHeight == SeatLayoutConstants.popupMaxHeight) {
+              popupHeight = 200.0; // 가로 배치로 인해 훨씬 작을 것으로 예상
+            }
 
             _popupX = _popupX.clamp(0, screenSize.width - popupWidth);
             _popupY = _popupY.clamp(0, screenSize.height - popupHeight);
           });
         },
         child: Container(
+          key: _popupKey,
           width: SeatLayoutConstants.popupMaxWidth,
           constraints: const BoxConstraints(
             maxWidth: SeatLayoutConstants.popupMaxWidth,
@@ -125,6 +149,8 @@ class _SettingsPopupWidgetState extends ConsumerState<SettingsPopupWidget> {
                 _buildLayoutSettings(),
                 const SizedBox(height: 16),
                 _buildSeatCreation(),
+                const SizedBox(height: 16),
+                _buildMoveSettings(), // 이동간격 설정 추가
                 const SizedBox(height: 16),
                 _buildSelectedSeatSettings(),
               ],
@@ -174,7 +200,7 @@ class _SettingsPopupWidgetState extends ConsumerState<SettingsPopupWidget> {
         const SizedBox(width: 16),
         _buildActionButton('적용', _applyLayoutSettings),
         const SizedBox(width: 8),
-        _buildActionButton('초기화', widget.onResetCanvasPosition),
+        _buildActionButton('위치리셋', widget.onResetCanvasPosition),
       ],
     );
   }
@@ -192,6 +218,19 @@ class _SettingsPopupWidgetState extends ConsumerState<SettingsPopupWidget> {
         _buildTextField(_endSeatController, '끝'),
         const SizedBox(width: 16),
         _buildActionButton('생성', _createSeats),
+      ],
+    );
+  }
+
+  /// 이동간격 설정 섹션
+  Widget _buildMoveSettings() {
+    return Row(
+      children: [
+        const Text('이동간격 설정', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const SizedBox(width: 16),
+        _buildTextField(_moveStepController, '간격(px)'),
+        const SizedBox(width: 16),
+        _buildActionButton('적용', _applyMoveSettings),
       ],
     );
   }
@@ -281,6 +320,13 @@ class _SettingsPopupWidgetState extends ConsumerState<SettingsPopupWidget> {
     widget.onApplySelectedSeatSettings(width, height, rotation);
   }
 
+  /// 이동간격 설정 적용
+  void _applyMoveSettings() {
+    final moveStep = double.tryParse(moveStepValue) ?? SeatLayoutConstants.moveStep;
+    // Provider를 통해 이동간격을 업데이트
+    ref.read(moveStepProvider.notifier).state = moveStep;
+  }
+
   /// 회전값 변경 (1도씩)
   void _rotateBy(int direction) {
     final currentRotation = double.tryParse(_rotationController.text) ?? 0;
@@ -301,4 +347,5 @@ class _SettingsPopupWidgetState extends ConsumerState<SettingsPopupWidget> {
   String get seatWidthValue => _seatWidthController.text;
   String get seatHeightValue => _seatHeightController.text;
   String get rotationValue => _rotationController.text;
+  String get moveStepValue => _moveStepController.text; // 이동간격 getter 추가
 }
