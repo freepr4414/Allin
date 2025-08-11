@@ -1,0 +1,89 @@
+# ===========================================
+# Allin Project - Monorepo .gitignore
+# ===========================================
+
+# OS 관련
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.tmp
+*.temp
+
+# IDE 관련
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+.atom/
+.buildlog/
+.history
+.svn/
+
+# ===========================================
+# Flutter/Dart 관련 (naradesk, naradevice)
+# ===========================================
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+**/build/
+lib/generated_plugin_registrant.dart
+
+# Flutter 빌드 파일
+**/windows/flutter/ephemeral/
+**/linux/flutter/ephemeral/
+**/macos/Flutter/ephemeral/
+**/android/app/debug
+**/android/app/profile
+**/android/app/release
+
+# ===========================================
+# Go 관련 (narabackend, naracontrol, naradbmake)
+# ===========================================
+# 바이너리 파일
+*.exe
+narabackend/bin/
+naracontrol/bin/
+naradbmake/bin/
+
+# Go 모듈 캐시
+**/go.sum
+**/vendor/
+
+# 로그 파일
+*.log
+
+# ===========================================
+# 개발 관련
+# ===========================================
+# 환경 설정
+.env
+.env.local
+config.json
+secrets.json
+
+# 백업 파일
+*.bak
+*.backup
+*복사본*
+
+# 테스트 관련
+coverage/
+test_results/
+
+# 문서 관련
+*.pdf
+docs/build/
+
+# ===========================================
+# 기타
+# ===========================================
+node_modules/
+*.class
+*.pyc
+*.swp
