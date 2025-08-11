@@ -121,9 +121,9 @@ class DashboardScreen extends ConsumerWidget {
           mainAxisSpacing: Responsive.getResponsiveMargin(context),
           childAspectRatio: Responsive.getResponsiveValue(
             context,
-            mobile: 1.2,
-            tablet: 1.5,
-            desktop: 2.0,
+            mobile: 0.8,
+            tablet: 1.0,
+            desktop: 1.5,
           ),
           children: [
             _buildStatCard(
@@ -190,6 +190,7 @@ class DashboardScreen extends ConsumerWidget {
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             padding: const EdgeInsets.all(12),

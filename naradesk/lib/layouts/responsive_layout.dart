@@ -377,15 +377,6 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
     // 사용자 권한 레벨 가져오기
     final userLevel = authState.user?.permissionLevel ?? PermissionLevel.level5;
 
-    // 진단용 로그 추가
-    final route = RouteRegistry.findById(currentScreen);
-    debugPrint(
-      '[LAYOUT] currentScreen=$currentScreen routeExists=${route != null} userLevel=${userLevel.displayName}',
-    );
-    debugPrint(
-      '[LAYOUT] dropdownOpen=$_isDropdownOpen dropdownContent=${_dropdownContent != null}',
-    );
-
     try {
       // 중앙화된 라우트 시스템을 통해 페이지 빌드
       return RouteRegistry.buildPage(currentScreen, userLevel);

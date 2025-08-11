@@ -54,9 +54,6 @@ class MobileHeader extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.settings, color: Colors.white),
                 onPressed: () {
-                  print(
-                    '🎨 [MOBILE_HEADER_SETTINGS] 모바일 헤더 설정 버튼 클릭됨 (사이드바 토글)',
-                  );
                   onToggleRightSidebar();
                 },
               ),

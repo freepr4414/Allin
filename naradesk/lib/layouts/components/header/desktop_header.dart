@@ -98,7 +98,6 @@ class DesktopHeader extends StatelessWidget {
                 icon: Icons.settings,
                 tooltip: '설정',
                 onPressed: () {
-                  print('🎨 [HEADER_SETTINGS] 헤더 설정 버튼 클릭됨 (사이드바 토글)');
                   onToggleRightSidebar();
                 },
               ),

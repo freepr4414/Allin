@@ -653,7 +653,6 @@ class _SidePanelState extends ConsumerState<SidePanel> {
                               children: List.generate(5, (index) {
                                 final level = FontSizeLevel.values[index];
                                 final isSelected = currentFontLevel == level;
-
                                 return GestureDetector(
                                   onTap: () {
                                     ref
@@ -666,6 +665,8 @@ class _SidePanelState extends ConsumerState<SidePanel> {
                                     decoration: BoxDecoration(
                                       color: isSelected
                                           ? Theme.of(context).primaryColor
+                                          : isDarkMode
+                                          ? Colors.grey.shade700
                                           : Colors.grey.shade300,
                                       borderRadius: BorderRadius.circular(16),
                                     ),
@@ -677,12 +678,10 @@ class _SidePanelState extends ConsumerState<SidePanel> {
                                             .labelMedium
                                             ?.copyWith(
                                               color: isSelected
-                                                  ? Theme.of(
-                                                      context,
-                                                    ).colorScheme.onPrimary
-                                                  : onSurface.withValues(
-                                                      alpha: 0.6,
-                                                    ),
+                                                  ? Colors.white
+                                                  : isDarkMode
+                                                  ? Colors.white
+                                                  : Colors.black87,
                                               fontWeight: FontWeight.bold,
                                             ),
                                       ),
@@ -709,7 +708,31 @@ class _SidePanelState extends ConsumerState<SidePanel> {
                       context,
                     ).textTheme.bodyLarge?.copyWith(color: onSurface),
                   ),
-                  trailing: Switch(value: true, onChanged: (value) {}),
+                  trailing: !isDarkMode
+                      ? Switch(
+                          value: true,
+                          onChanged: (value) {},
+                          thumbColor: WidgetStateProperty.resolveWith((states) {
+                            // 항상 흰색으로 고정
+                            return Colors.white;
+                          }),
+                          overlayColor: WidgetStateProperty.resolveWith((
+                            states,
+                          ) {
+                            if (states.contains(WidgetState.hovered)) {
+                              return Theme.of(
+                                context,
+                              ).primaryColor.withValues(alpha: 0.15);
+                            }
+                            if (states.contains(WidgetState.pressed)) {
+                              return Theme.of(
+                                context,
+                              ).primaryColor.withValues(alpha: 0.25);
+                            }
+                            return null;
+                          }),
+                        )
+                      : Switch(value: true, onChanged: (value) {}),
                 ),
               ],
             ),
@@ -791,7 +814,31 @@ class _SidePanelState extends ConsumerState<SidePanel> {
                       context,
                     ).textTheme.bodyLarge?.copyWith(color: onSurface),
                   ),
-                  trailing: Switch(value: true, onChanged: (value) {}),
+                  trailing: !isDarkMode
+                      ? Switch(
+                          value: true,
+                          onChanged: (value) {},
+                          thumbColor: WidgetStateProperty.resolveWith((states) {
+                            // 항상 흰색으로 고정
+                            return Colors.white;
+                          }),
+                          overlayColor: WidgetStateProperty.resolveWith((
+                            states,
+                          ) {
+                            if (states.contains(WidgetState.hovered)) {
+                              return Theme.of(
+                                context,
+                              ).primaryColor.withValues(alpha: 0.15);
+                            }
+                            if (states.contains(WidgetState.pressed)) {
+                              return Theme.of(
+                                context,
+                              ).primaryColor.withValues(alpha: 0.25);
+                            }
+                            return null;
+                          }),
+                        )
+                      : Switch(value: true, onChanged: (value) {}),
                 ),
               ],
             ),

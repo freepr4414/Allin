@@ -34,7 +34,8 @@ class UnifiedMenu extends ConsumerStatefulWidget {
 
 class _UnifiedMenuState extends ConsumerState<UnifiedMenu> {
   // 디버그 로그 활성화 플래그 (필요 시 false 로 끄기)
-  static const bool _debugSubHover = true;
+  /// 디버그 옵션들
+  static const bool _debugSubHover = false;
   // 드롭다운 재빌드를 위한 현재 열린 부모 & 자식 캐시
   UnifiedMenuItem? _currentOpenParent;
   List<UnifiedMenuItem> _currentOpenChildren = const [];
