@@ -11,7 +11,6 @@ class WidgetPreviewPanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentThemeColor = ref.watch(currentThemeColorProvider);
-    final pageWidth = ref.watch(pageWidthProvider);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -38,35 +37,6 @@ class WidgetPreviewPanel extends ConsumerWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      '페이지 너비: ',
-                      style: TextStyle(color: Colors.white, fontSize: 12),
-                    ),
-                    Text(
-                      '${pageWidth.toInt()}px',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                Slider(
-                  value: pageWidth,
-                  min: 400.0,
-                  max: 1200.0,
-                  divisions: 80,
-                  activeColor: Colors.white,
-                  inactiveColor: Colors.white.withValues(alpha: 0.3),
-                  onChanged: (value) {
-                    ref.read(pageWidthProvider.notifier).updateWidth(value);
-                  },
-                ),
               ],
             ),
           ),
@@ -79,16 +49,20 @@ class WidgetPreviewPanel extends ConsumerWidget {
                   bottom: Radius.circular(12),
                 ),
               ),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Container(
-                  width: pageWidth,
-                  padding: const EdgeInsets.all(16),
-                  child: Theme(
-                    data: AppTheme.lightTheme(currentThemeColor.color),
-                    child: _buildWidgetGrid(context, ref, false),
-                  ),
-                ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Container(
+                      width: constraints.maxWidth,
+                      padding: const EdgeInsets.all(16),
+                      child: Theme(
+                        data: AppTheme.lightTheme(currentThemeColor.color),
+                        child: _buildWidgetGrid(context, ref, false),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),

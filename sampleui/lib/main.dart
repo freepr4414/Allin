@@ -34,8 +34,6 @@ class SampleUIApp extends ConsumerWidget {
         return ThemeMode.light;
       case AppThemeMode.dark:
         return ThemeMode.dark;
-      case AppThemeMode.system:
-        return ThemeMode.system;
     }
   }
 }

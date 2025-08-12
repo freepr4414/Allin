@@ -21,8 +21,7 @@ enum FontSizeLevel {
 /// 테마 모드 열거형
 enum AppThemeMode {
   light('라이트 모드'),
-  dark('다크 모드'),
-  system('시스템 설정');
+  dark('다크 모드');
 
   const AppThemeMode(this.displayName);
 

@@ -19,7 +19,7 @@ class ThemePanel extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 헤더
+          // 헤더 - Auto Reload Test 123
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -31,7 +31,7 @@ class ThemePanel extends ConsumerWidget {
                 Icon(Icons.palette, color: Colors.white),
                 SizedBox(width: 8),
                 Text(
-                  '사이드바 2',
+                  '테마 및 폰트 설정',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,

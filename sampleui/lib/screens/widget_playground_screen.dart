@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../constants/app_constants.dart';
-import '../providers/font_size_provider.dart';
-import '../providers/theme_provider.dart';
-import '../providers/widget_selection_provider.dart';
 import '../widgets/property_panel.dart';
 import '../widgets/theme_panel.dart';
 import '../widgets/widget_preview_panel.dart';
@@ -19,121 +15,38 @@ class WidgetPlaygroundScreen extends ConsumerStatefulWidget {
 
 class _WidgetPlaygroundScreenState
     extends ConsumerState<WidgetPlaygroundScreen> {
-  double _mainWidth = 800.0;
+  double? _mainWidth; // null로 초기화하여 build에서 설정
 
   @override
   Widget build(BuildContext context) {
-    final currentThemeMode = ref.watch(currentThemeModeProvider);
-    final currentThemeColor = ref.watch(currentThemeColorProvider);
-    final currentFontLevel = ref.watch(currentFontSizeLevelProvider);
-    final selectedWidget = ref.watch(selectedWidgetProvider);
-    final pageWidth = ref.watch(pageWidthProvider);
-
+    // 첫 빌드 시 화면 너비의 50%로 설정
+    _mainWidth ??= MediaQuery.of(context).size.width * 0.5;
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('위젯 플레이그라운드'),
         centerTitle: true,
-        actions: [
-          // 선택된 위젯 표시
-          if (selectedWidget != SelectedWidgetType.none)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(
-                  AppConstants.smallBorderRadius,
-                ),
-                border: Border.all(color: Colors.orange),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.widgets, size: 16, color: Colors.orange),
-                  const SizedBox(width: 4),
-                  Text(
-                    selectedWidget.displayName,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.orange,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          // 페이지 너비 표시
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              color: Colors.blue.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(
-                AppConstants.smallBorderRadius,
-              ),
-              border: Border.all(color: Colors.blue),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.width_full, size: 16, color: Colors.blue),
-                const SizedBox(width: 4),
-                Text(
-                  '${pageWidth.toInt()}px',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.blue,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // 현재 설정 표시
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            margin: const EdgeInsets.only(right: 12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(
-                AppConstants.smallBorderRadius,
-              ),
-            ),
-            child: Text(
-              '${currentThemeMode.displayName} • ${currentThemeColor.displayName} • ${currentFontLevel.displayName}',
-              style: const TextStyle(fontSize: 12),
-            ),
-          ),
-        ],
       ),
       body: Row(
         children: [
-          // 메인 영역 (가로폭 조절 가능)
-          Expanded(
-            child: Container(
-              width: _mainWidth,
-              constraints: BoxConstraints(
-                minWidth: AppConstants.playgroundMinWidth,
-              ),
-              child: const WidgetPreviewPanel(),
+          // 메인 프리뷰 패널 (크기 조절 가능)
+          Container(
+            width: _mainWidth ?? MediaQuery.of(context).size.width * 0.5,
+            constraints: const BoxConstraints(
+              minWidth: 100.0,
             ),
+            child: const WidgetPreviewPanel(),
           ),
-
           // 크기 조절 핸들
           MouseRegion(
             cursor: SystemMouseCursors.resizeColumn,
             child: GestureDetector(
-              onPanUpdate: (details) {
+              behavior: HitTestBehavior.translucent,
+              onHorizontalDragUpdate: (details) {
+                final minWidth = 100.0;
+                final maxWidth = MediaQuery.of(context).size.width - 200.0;
                 setState(() {
-                  _mainWidth = (_mainWidth + details.delta.dx).clamp(
-                    AppConstants.playgroundMinWidth,
-                    MediaQuery.of(context).size.width -
-                        AppConstants.propertyPanelWidth -
-                        AppConstants.themePanelWidth -
-                        20,
-                  );
+                  _mainWidth = ((_mainWidth ?? 0) + details.delta.dx).clamp(minWidth, maxWidth);
                 });
               },
               child: Container(
@@ -152,25 +65,25 @@ class _WidgetPlaygroundScreenState
               ),
             ),
           ),
-
           // 사이드바 1: 속성 설정 패널
-          Container(
-            width: AppConstants.propertyPanelWidth,
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              border: Border(
-                left: BorderSide(color: Colors.grey.shade300),
-                right: BorderSide(color: Colors.grey.shade300),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                border: Border(
+                  left: BorderSide(color: Colors.grey.shade300),
+                  right: BorderSide(color: Colors.grey.shade300),
+                ),
               ),
+              child: const PropertyPanel(),
             ),
-            child: const PropertyPanel(),
           ),
-
-          // 사이드바 2: 테마 및 코드 패널
-          Container(
-            width: AppConstants.themePanelWidth,
-            decoration: BoxDecoration(color: Theme.of(context).cardColor),
-            child: const ThemePanel(),
+          // 사이드바 2: 테마 패널
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(color: Theme.of(context).cardColor),
+              child: const ThemePanel(),
+            ),
           ),
         ],
       ),
