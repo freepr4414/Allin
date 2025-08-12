@@ -259,10 +259,14 @@ class AppTheme {
   static ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: AppConstants.primaryColor,
-      brightness: Brightness.dark,
-    ),
+    colorScheme:
+        ColorScheme.fromSeed(
+          seedColor: AppConstants.primaryColor,
+          brightness: Brightness.dark,
+        ).copyWith(
+          // 다크모드에서 더 밝은 primary 색상 사용
+          primary: Colors.lightBlue,
+        ),
 
     // 앱바 테마
     appBarTheme: AppBarTheme(

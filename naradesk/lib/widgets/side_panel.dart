@@ -21,6 +21,8 @@ class SidePanel extends ConsumerStatefulWidget {
 
 class _SidePanelState extends ConsumerState<SidePanel> {
   bool _isThemeExpanded = false;
+  bool _isNotificationEnabled = true; // 알림 스위치 상태
+  bool _isAutoCleanupEnabled = false; // 자동정리 스위치 상태
 
   @override
   Widget build(BuildContext context) {
@@ -708,31 +710,47 @@ class _SidePanelState extends ConsumerState<SidePanel> {
                       context,
                     ).textTheme.bodyLarge?.copyWith(color: onSurface),
                   ),
-                  trailing: !isDarkMode
-                      ? Switch(
-                          value: true,
-                          onChanged: (value) {},
-                          thumbColor: WidgetStateProperty.resolveWith((states) {
-                            // 항상 흰색으로 고정
-                            return Colors.white;
-                          }),
-                          overlayColor: WidgetStateProperty.resolveWith((
-                            states,
-                          ) {
-                            if (states.contains(WidgetState.hovered)) {
-                              return Theme.of(
-                                context,
-                              ).primaryColor.withValues(alpha: 0.15);
-                            }
-                            if (states.contains(WidgetState.pressed)) {
-                              return Theme.of(
-                                context,
-                              ).primaryColor.withValues(alpha: 0.25);
-                            }
-                            return null;
-                          }),
-                        )
-                      : Switch(value: true, onChanged: (value) {}),
+                  trailing: Switch(
+                    value: _isNotificationEnabled,
+                    onChanged: (value) {
+                      setState(() {
+                        _isNotificationEnabled = value;
+                      });
+                      // 알림 설정 변경 로직을 여기에 추가할 수 있습니다
+                      print('알림 설정이 ${value ? '켜짐' : '꺼짐'}으로 변경되었습니다');
+                    },
+                    // 간단한 Material 스위치 - 테마 컬러 적용
+                    thumbColor: WidgetStateProperty.all(Colors.white),
+                    trackColor: WidgetStateProperty.resolveWith((states) {
+                      final themeColor = Theme.of(context).primaryColor;
+                      final isSelected = states.contains(WidgetState.selected);
+
+                      // 알림 스위치 디버그 로그
+                      print(
+                        '알림 스위치 - 다크모드: $isDarkMode, 선택됨: $isSelected, 테마컬러: $themeColor',
+                      );
+
+                      if (isSelected) {
+                        // 켜진 상태 - 라이트모드와 다크모드 모두 원래 테마 컬러 사용
+                        print('알림 켜진 상태 색상: $themeColor');
+                        return themeColor;
+                      } else {
+                        // 꺼진 상태 - 라이트모드와 동일한 색상 로직
+                        final offColor = const Color(0xFFE1E1E1);
+                        print('알림 꺼진 상태 색상: $offColor (다크모드: $isDarkMode)');
+                        return offColor;
+                      }
+                    }),
+                    overlayColor: WidgetStateProperty.resolveWith((states) {
+                      if (states.contains(WidgetState.hovered)) {
+                        // 호버 시 약간의 효과
+                        return Theme.of(
+                          context,
+                        ).primaryColor.withValues(alpha: 0.1);
+                      }
+                      return Colors.transparent;
+                    }),
+                  ),
                 ),
               ],
             ),
@@ -814,31 +832,47 @@ class _SidePanelState extends ConsumerState<SidePanel> {
                       context,
                     ).textTheme.bodyLarge?.copyWith(color: onSurface),
                   ),
-                  trailing: !isDarkMode
-                      ? Switch(
-                          value: true,
-                          onChanged: (value) {},
-                          thumbColor: WidgetStateProperty.resolveWith((states) {
-                            // 항상 흰색으로 고정
-                            return Colors.white;
-                          }),
-                          overlayColor: WidgetStateProperty.resolveWith((
-                            states,
-                          ) {
-                            if (states.contains(WidgetState.hovered)) {
-                              return Theme.of(
-                                context,
-                              ).primaryColor.withValues(alpha: 0.15);
-                            }
-                            if (states.contains(WidgetState.pressed)) {
-                              return Theme.of(
-                                context,
-                              ).primaryColor.withValues(alpha: 0.25);
-                            }
-                            return null;
-                          }),
-                        )
-                      : Switch(value: true, onChanged: (value) {}),
+                  trailing: Switch(
+                    value: _isAutoCleanupEnabled,
+                    onChanged: (value) {
+                      setState(() {
+                        _isAutoCleanupEnabled = value;
+                      });
+                      // 자동정리 설정 변경 로직을 여기에 추가할 수 있습니다
+                      print('자동정리 설정이 ${value ? '켜짐' : '꺼짐'}으로 변경되었습니다');
+                    },
+                    // 간단한 Material 스위치 - 테마 컬러 적용
+                    thumbColor: WidgetStateProperty.all(Colors.white),
+                    trackColor: WidgetStateProperty.resolveWith((states) {
+                      final themeColor = Theme.of(context).primaryColor;
+                      final isSelected = states.contains(WidgetState.selected);
+
+                      // 자동정리 스위치 디버그 로그
+                      print(
+                        '자동정리 스위치 - 다크모드: $isDarkMode, 선택됨: $isSelected, 테마컬러: $themeColor',
+                      );
+
+                      if (isSelected) {
+                        // 켜진 상태 - 라이트모드와 다크모드 모두 원래 테마 컬러 사용
+                        print('자동정리 켜진 상태 색상: $themeColor');
+                        return themeColor;
+                      } else {
+                        // 꺼진 상태 - 라이트모드와 동일한 색상 로직
+                        final offColor = const Color(0xFFE1E1E1);
+                        print('자동정리 꺼진 상태 색상: $offColor (다크모드: $isDarkMode)');
+                        return offColor;
+                      }
+                    }),
+                    overlayColor: WidgetStateProperty.resolveWith((states) {
+                      if (states.contains(WidgetState.hovered)) {
+                        // 호버 시 약간의 효과
+                        return Theme.of(
+                          context,
+                        ).primaryColor.withValues(alpha: 0.1);
+                      }
+                      return Colors.transparent;
+                    }),
+                  ),
                 ),
               ],
             ),

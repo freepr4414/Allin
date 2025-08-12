@@ -69,7 +69,7 @@ class _MemberListScreenState extends ConsumerState<MemberListScreen> {
         '전체 회원 수: $total명',
         style: TextStyle(
           fontSize: Responsive.getResponsiveFontSize(context, baseFontSize: 16),
-          color: onSurface.withOpacity(0.7),
+          color: onSurface.withValues(alpha: 0.7),
         ),
       ),
     ],
@@ -242,7 +242,7 @@ class _MemberListScreenState extends ConsumerState<MemberListScreen> {
                     context,
                     baseFontSize: 14,
                   ),
-                  color: onSurface.withOpacity(0.7),
+                  color: onSurface.withValues(alpha: 0.7),
                 ),
               ),
               const SizedBox(height: 4),
@@ -253,7 +253,7 @@ class _MemberListScreenState extends ConsumerState<MemberListScreen> {
                     context,
                     baseFontSize: 14,
                   ),
-                  color: onSurface.withOpacity(0.7),
+                  color: onSurface.withValues(alpha: 0.7),
                 ),
               ),
               const SizedBox(height: 8),
@@ -271,7 +271,7 @@ class _MemberListScreenState extends ConsumerState<MemberListScreen> {
                         context,
                         baseFontSize: 12,
                       ),
-                      color: onSurface.withOpacity(0.5),
+                      color: onSurface.withValues(alpha: 0.5),
                     ),
                   ),
                 ],
@@ -288,9 +288,9 @@ class _MemberListScreenState extends ConsumerState<MemberListScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         text,
