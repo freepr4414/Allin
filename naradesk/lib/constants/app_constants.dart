@@ -56,6 +56,18 @@ class AppConstants {
   static const double tabletBreakpoint = 1024;
   static const double desktopBreakpoint = 1200;
 
+  // ============ 앱 최소/최대 크기 ============
+  static const double minAppWidth = 800.0;
+  static const double minAppHeight = 600.0;
+  static const double defaultAppWidth = 1200.0;
+  static const double defaultAppHeight = 800.0;
+
+  // ============ 레이아웃 상수 ============
+  static const double headerHeight = 60.0;
+  static const double sidebarWidth = 450.0;
+  static const double footerHeight = 40.0;
+  static const double dropdownWidth = 220.0;
+
   // ============ 폰트 크기 ============
   static const double smallFontSize = 12.0;
   static const double normalFontSize = 14.0;
@@ -63,6 +75,35 @@ class AppConstants {
   static const double largeFontSize = 18.0;
   static const double extraLargeFontSize = 24.0;
   static const double titleFontSize = 32.0;
+
+  // ============ 반응형 폰트 크기 ============
+  static const double mobileFontSize = 10.0;
+  static const double tabletFontSize = 12.0;
+  static const double desktopFontSize = 14.0;
+
+  // ============ 반응형 패딩 ============
+  static const double mobilePadding = 8.0;
+  static const double tabletPadding = 16.0;
+  static const double desktopPadding = 24.0;
+
+  // ============ 반응형 마진 ============
+  static const double mobileMargin = 4.0;
+  static const double tabletMargin = 8.0;
+  static const double desktopMargin = 16.0;
+
+  // ============ 반응형 아이콘 크기 ============
+  static const double mobileIconSize = 20.0;
+  static const double tabletIconSize = 24.0;
+  static const double desktopIconSize = 28.0;
+
+  // ============ 그리드 및 배치 ============
+  static const double gridSize = 50.0;
+  static const double popupWidth = 200.0;
+  static const double popupHeight = 432.0;
+
+  // ============ 화면 크기 임계값 ============
+  static const double smallScreenWidth = 800.0;
+  static const double smallScreenHeight = 600.0;
 
   // ============ 권한 레벨 표시명 ============
   static const Map<PermissionLevel, String> permissionNames = {

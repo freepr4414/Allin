@@ -34,6 +34,7 @@ class ThemeColorSelector extends ConsumerWidget {
             final isSelected = currentColor == color;
             return GestureDetector(
               onTap: () {
+                print('테마 컬러 선택 - 기존: ${currentColor.name}, 새로운: ${color.name}');
                 ref.read(themeProvider.notifier).setThemeColor(color);
               },
               child: Container(

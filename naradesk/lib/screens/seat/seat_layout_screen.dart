@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../constants/app_constants.dart';
 import '../../models/seat.dart';
 import '../../providers/seat_provider.dart';
 import '../../utils/responsive.dart';
@@ -109,9 +110,9 @@ class _SeatLayoutScreenState extends ConsumerState<SeatLayoutScreen> {
                   color: Theme.of(context).colorScheme.primary,
                   size: Responsive.getResponsiveValue(
                     context,
-                    mobile: 20,
-                    tablet: 24,
-                    desktop: 28,
+                    mobile: AppConstants.mobileIconSize,
+                    tablet: AppConstants.tabletIconSize,
+                    desktop: AppConstants.desktopIconSize,
                   ),
                 ),
                 SizedBox(width: Responsive.getResponsiveMargin(context)),
@@ -142,42 +143,7 @@ class _SeatLayoutScreenState extends ConsumerState<SeatLayoutScreen> {
                   ).colorScheme.outline.withValues(alpha: 0.2),
                 ),
               ),
-              child: Column(
-                children: [
-                  // 작은 화면에서는 도움말 표시
-                  if (MediaQuery.of(context).size.width < 800)
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      margin: const EdgeInsets.only(bottom: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.blue[50],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.blue[200]!),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.info_outline,
-                            color: Colors.blue[600],
-                            size: 16,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              '드래그로 이동, 핀치로 확대/축소 가능',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.blue[600],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  // 좌석 배치도
-                  Expanded(child: _buildSeatGrid(context, ref, seats)),
-                ],
-              ),
+              child: _buildSeatGrid(context, ref, seats),
             ),
           ),
         ],
@@ -187,60 +153,47 @@ class _SeatLayoutScreenState extends ConsumerState<SeatLayoutScreen> {
 
   Widget _buildSeatLegend(BuildContext context, Map<SeatStatus, int> stats) {
     if (Responsive.isMobile(context)) {
-      // 모바일에서는 2줄로 배치
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
+            // 모바일에서는 Wrap으로 자동 줄바꿈
+      return Wrap(
+        alignment: WrapAlignment.end,
+        spacing: Responsive.getResponsiveMargin(context),
+        runSpacing: Responsive.getResponsiveMargin(context) / 2,
         children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildLegendItem(
-                context,
-                '이용가능',
-                Colors.green,
-                stats[SeatStatus.available] ?? 0,
-              ),
-              SizedBox(width: Responsive.getResponsiveMargin(context)),
-              _buildLegendItem(
-                context,
-                '사용중',
-                Colors.red,
-                stats[SeatStatus.occupied] ?? 0,
-              ),
-              SizedBox(width: Responsive.getResponsiveMargin(context)),
-              _buildLegendItem(
-                context,
-                '예약됨',
-                Colors.blue,
-                stats[SeatStatus.reserved] ?? 0,
-              ),
-            ],
+          _buildLegendItem(
+            context,
+            '이용가능',
+            Colors.green,
+            stats[SeatStatus.available] ?? 0,
           ),
-          SizedBox(height: Responsive.getResponsiveMargin(context) / 2),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildLegendItem(
-                context,
-                '점검중',
-                Colors.orange,
-                stats[SeatStatus.maintenance] ?? 0,
-              ),
-              SizedBox(width: Responsive.getResponsiveMargin(context)),
-              _buildLegendItem(
-                context,
-                '청소중',
-                Colors.purple,
-                stats[SeatStatus.cleaning] ?? 0,
-              ),
-              SizedBox(width: Responsive.getResponsiveMargin(context)),
-              _buildLegendItem(
-                context,
-                '고장',
-                Colors.grey,
-                stats[SeatStatus.outOfOrder] ?? 0,
-              ),
-            ],
+          _buildLegendItem(
+            context,
+            '사용중',
+            Colors.red,
+            stats[SeatStatus.occupied] ?? 0,
+          ),
+          _buildLegendItem(
+            context,
+            '예약됨',
+            Colors.blue,
+            stats[SeatStatus.reserved] ?? 0,
+          ),
+          _buildLegendItem(
+            context,
+            '점검중',
+            Colors.orange,
+            stats[SeatStatus.maintenance] ?? 0,
+          ),
+          _buildLegendItem(
+            context,
+            '청소중',
+            Colors.purple,
+            stats[SeatStatus.cleaning] ?? 0,
+          ),
+          _buildLegendItem(
+            context,
+            '고장',
+            Colors.grey,
+            stats[SeatStatus.outOfOrder] ?? 0,
           ),
         ],
       );
@@ -302,25 +255,34 @@ class _SeatLayoutScreenState extends ConsumerState<SeatLayoutScreen> {
         Container(
           width: Responsive.getResponsiveValue(
             context,
-            mobile: 8.0,
-            tablet: 10.0,
-            desktop: 12.0,
+            mobile: 6.0,
+            tablet: 8.0,
+            desktop: 10.0,
           ),
           height: Responsive.getResponsiveValue(
             context,
-            mobile: 8.0,
-            tablet: 10.0,
-            desktop: 12.0,
+            mobile: 6.0,
+            tablet: 8.0,
+            desktop: 10.0,
           ),
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
-        SizedBox(width: Responsive.getResponsiveMargin(context) / 2),
-        Text(
-          '$label ($count)',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(
-              context,
-            ).colorScheme.onSurface.withValues(alpha: 0.7),
+        SizedBox(width: Responsive.getResponsiveMargin(context) / 4),
+        Flexible(
+          child: Text(
+            '$label ($count)',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
+              fontSize: Responsive.getResponsiveValue(
+                context,
+                mobile: AppConstants.mobileFontSize,
+                tablet: AppConstants.tabletFontSize,
+                desktop: AppConstants.desktopFontSize,
+              ),
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -332,7 +294,8 @@ class _SeatLayoutScreenState extends ConsumerState<SeatLayoutScreen> {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
     final currentScreenSize = Size(screenWidth, screenHeight);
-    final isSmallScreen = screenWidth < 800 || screenHeight < 600;
+    final isSmallScreen = screenWidth < AppConstants.smallScreenWidth || 
+                         screenHeight < AppConstants.smallScreenHeight;
 
     // 화면 크기 변화 감지 및 변환 리셋 (큰 변화가 있을 때만)
     if (_previousScreenSize != null) {
@@ -444,9 +407,9 @@ class _SeatLayoutScreenState extends ConsumerState<SeatLayoutScreen> {
 
     _currentPopupSeatId = seat.id;
 
-    // 팝업 메뉴 크기 (가로 200px, 세로 대략 9개 항목 * 48px = 432px)
-    const double popupWidth = 200;
-    const double popupHeight = 432;
+    // 팝업 메뉴 크기
+    const double popupWidth = AppConstants.popupWidth;
+    const double popupHeight = AppConstants.popupHeight;
 
     // 버튼 중앙 기준으로 팝업 중앙이 오도록 계산
     final double popupLeft =
@@ -803,7 +766,7 @@ class GridPainter extends CustomPainter {
       ..color = Colors.grey.withValues(alpha: 0.2)
       ..strokeWidth = 0.5;
 
-    const gridSize = 50.0;
+    const gridSize = AppConstants.gridSize;
 
     // 세로선 그리기
     for (double x = 0; x <= size.width; x += gridSize) {

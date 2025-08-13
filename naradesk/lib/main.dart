@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'constants/app_constants.dart';
 import 'providers/auth_provider.dart';
 import 'providers/font_size_provider.dart';
 import 'providers/theme_provider.dart';
@@ -32,7 +33,7 @@ class StudyCafeApp extends ConsumerWidget {
     );
 
     return MaterialApp(
-      title: 'Study Cafe Management',
+      title: 'Study Cafe Manager',
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: themeState.themeMode == AppThemeMode.light
@@ -40,6 +41,37 @@ class StudyCafeApp extends ConsumerWidget {
           : ThemeMode.dark,
       home: const AuthWrapper(),
       debugShowCheckedModeBanner: false,
+      builder: (context, child) {
+        // 최소 크기 로그 추가
+        final screenSize = MediaQuery.of(context).size;
+        print('=== MaterialApp Builder ===');
+        print('화면 크기: ${screenSize.width} x ${screenSize.height}');
+        
+        // 강력한 최소 크기 제약 적용
+        return Container(
+          constraints: const BoxConstraints(
+            minWidth: AppConstants.minAppWidth,
+            minHeight: AppConstants.minAppHeight,
+          ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // 제약 조건이 최소 크기보다 작으면 강제로 최소 크기 적용
+              final width = constraints.maxWidth < AppConstants.minAppWidth 
+                  ? AppConstants.minAppWidth 
+                  : constraints.maxWidth;
+              final height = constraints.maxHeight < AppConstants.minAppHeight 
+                  ? AppConstants.minAppHeight 
+                  : constraints.maxHeight;
+              
+              return SizedBox(
+                width: width,
+                height: height,
+                child: child,
+              );
+            },
+          ),
+        );
+      },
     );
   }
 

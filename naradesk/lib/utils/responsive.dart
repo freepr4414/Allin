@@ -1,21 +1,27 @@
 import 'package:flutter/material.dart';
 
+import '../constants/app_constants.dart';
+
 class ResponsiveBreakpoints {
-  static const double mobile = 600;
-  static const double tablet = 900;
-  static const double desktop = 1200;
+  static const double mobile = AppConstants.mobileBreakpoint;
+  static const double tablet = AppConstants.tabletBreakpoint;
+  static const double desktop = AppConstants.desktopBreakpoint;
 }
 
 class Responsive {
-  static bool isMobile(BuildContext context) =>
-      MediaQuery.of(context).size.width < ResponsiveBreakpoints.mobile;
+  static bool isMobile(BuildContext context) {
+    return MediaQuery.of(context).size.width < ResponsiveBreakpoints.mobile;
+  }
 
-  static bool isTablet(BuildContext context) =>
-      MediaQuery.of(context).size.width >= ResponsiveBreakpoints.mobile &&
-      MediaQuery.of(context).size.width < ResponsiveBreakpoints.desktop;
+  static bool isTablet(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return width >= ResponsiveBreakpoints.mobile &&
+        width < ResponsiveBreakpoints.desktop;
+  }
 
-  static bool isDesktop(BuildContext context) =>
-      MediaQuery.of(context).size.width >= ResponsiveBreakpoints.desktop;
+  static bool isDesktop(BuildContext context) {
+    return MediaQuery.of(context).size.width >= ResponsiveBreakpoints.desktop;
+  }
 
   static T responsive<T>(
     BuildContext context, {
@@ -34,9 +40,7 @@ class Responsive {
     double? tablet,
     required double desktop,
   }) {
-    if (isDesktop(context)) return desktop;
-    if (isTablet(context)) return tablet ?? mobile;
-    return mobile;
+    return isDesktop(context) ? desktop : (isTablet(context) ? (tablet ?? mobile) : mobile);
   }
 
   static double getResponsiveFontSize(
@@ -54,14 +58,19 @@ class Responsive {
   static double getResponsivePadding(BuildContext context) {
     return responsive<double>(
       context,
-      mobile: 8.0,
-      tablet: 16.0,
-      desktop: 24.0,
+      mobile: AppConstants.mobilePadding,
+      tablet: AppConstants.tabletPadding,
+      desktop: AppConstants.desktopPadding,
     );
   }
 
   static double getResponsiveMargin(BuildContext context) {
-    return responsive<double>(context, mobile: 4.0, tablet: 8.0, desktop: 16.0);
+    return responsive<double>(
+      context, 
+      mobile: AppConstants.mobileMargin, 
+      tablet: AppConstants.tabletMargin, 
+      desktop: AppConstants.desktopMargin,
+    );
   }
 
   static int getSeatGridCount(BuildContext context) {

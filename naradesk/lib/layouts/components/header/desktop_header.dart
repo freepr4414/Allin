@@ -49,17 +49,11 @@ class DesktopHeader extends StatelessWidget {
                   duration: const Duration(milliseconds: 200),
                   child: Builder(
                     builder: (context) {
-                      final isDark =
-                          Theme.of(context).brightness == Brightness.dark;
-                      final titleColor = isDark ? Colors.black : Colors.white;
-                      return Text(
+                      return const Text(
                         'Study Cafe Manager',
                         style: TextStyle(
-                          color: titleColor,
-                          fontSize: Responsive.getResponsiveFontSize(
-                            context,
-                            baseFontSize: 20,
-                          ),
+                          color: Colors.white,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       );

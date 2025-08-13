@@ -168,9 +168,9 @@ class ResponsiveText extends StatelessWidget {
   Widget build(BuildContext context) {
     final fontSize = ResponsiveBuilder.responsive<double>(
       context,
-      mobile: mobileFontSize ?? AppConstants.normalFontSize,
-      tablet: tabletFontSize ?? AppConstants.mediumFontSize,
-      desktop: desktopFontSize ?? AppConstants.mediumFontSize,
+      mobile: mobileFontSize ?? AppConstants.mobileFontSize,
+      tablet: tabletFontSize ?? AppConstants.tabletFontSize,
+      desktop: desktopFontSize ?? AppConstants.desktopFontSize,
     );
 
     return Text(

@@ -725,19 +725,12 @@ class _SidePanelState extends ConsumerState<SidePanel> {
                       final themeColor = Theme.of(context).primaryColor;
                       final isSelected = states.contains(WidgetState.selected);
 
-                      // 알림 스위치 디버그 로그
-                      print(
-                        '알림 스위치 - 다크모드: $isDarkMode, 선택됨: $isSelected, 테마컬러: $themeColor',
-                      );
-
                       if (isSelected) {
                         // 켜진 상태 - 라이트모드와 다크모드 모두 원래 테마 컬러 사용
-                        print('알림 켜진 상태 색상: $themeColor');
                         return themeColor;
                       } else {
                         // 꺼진 상태 - 라이트모드와 동일한 색상 로직
                         final offColor = const Color(0xFFE1E1E1);
-                        print('알림 꺼진 상태 색상: $offColor (다크모드: $isDarkMode)');
                         return offColor;
                       }
                     }),
@@ -847,19 +840,12 @@ class _SidePanelState extends ConsumerState<SidePanel> {
                       final themeColor = Theme.of(context).primaryColor;
                       final isSelected = states.contains(WidgetState.selected);
 
-                      // 자동정리 스위치 디버그 로그
-                      print(
-                        '자동정리 스위치 - 다크모드: $isDarkMode, 선택됨: $isSelected, 테마컬러: $themeColor',
-                      );
-
                       if (isSelected) {
                         // 켜진 상태 - 라이트모드와 다크모드 모두 원래 테마 컬러 사용
-                        print('자동정리 켜진 상태 색상: $themeColor');
                         return themeColor;
                       } else {
                         // 꺼진 상태 - 라이트모드와 동일한 색상 로직
                         final offColor = const Color(0xFFE1E1E1);
-                        print('자동정리 꺼진 상태 색상: $offColor (다크모드: $isDarkMode)');
                         return offColor;
                       }
                     }),

@@ -90,8 +90,8 @@ class _UnifiedMenuState extends ConsumerState<UnifiedMenu> {
         final headerHeight = Responsive.getResponsiveValue(
           context,
           mobile: 60,
-          tablet: 70,
-          desktop: 80,
+          tablet: 60,
+          desktop: 60,
         );
         final cluster = _getMenuClusterBounds();
         if (cluster == null) return;
@@ -130,12 +130,8 @@ class _UnifiedMenuState extends ConsumerState<UnifiedMenu> {
   ) {
     final isHovered = _hoveredMenuId == menu.id;
     final isOpen = _openDropdownId == menu.id;
-    // onSurface 대신 사용자 정의 headerBaseColor 사용
-    final brightness = Theme.of(context).brightness;
-    // 사용자 요구: 라이트 모드 = 흰색, 다크 모드 = 검정색
-    final headerBaseColor = brightness == Brightness.dark
-        ? Colors.black
-        : Colors.white;
+    // 모든 모드에서 백색으로 통일
+    final headerBaseColor = Colors.white;
     final hasAccessibleChildren = menu
         .getAccessibleChildren(userLevel)
         .isNotEmpty;
@@ -283,9 +279,7 @@ class _UnifiedMenuState extends ConsumerState<UnifiedMenu> {
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 0,
       color: isExpanded
-          ? Theme.of(
-              context,
-            ).colorScheme.primaryContainer.withValues(alpha: 0.3)
+          ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08)
           : Colors.transparent,
       child: Column(
         children: [
@@ -423,8 +417,8 @@ class _UnifiedMenuState extends ConsumerState<UnifiedMenu> {
         final headerHeight = Responsive.getResponsiveValue(
           context,
           mobile: 60,
-          tablet: 70,
-          desktop: 80,
+          tablet: 60,
+          desktop: 60,
         );
         final size = MediaQuery.of(context).size;
 
@@ -478,9 +472,7 @@ class _UnifiedMenuState extends ConsumerState<UnifiedMenu> {
     bool isFirst = false,
     bool isLast = false,
   }) {
-    final scheme = Theme.of(context).colorScheme;
     final isHover = _hoveredSubMenuId == item.id;
-    final baseTextColor = scheme.onPrimary;
     // 메인 메뉴와 동일한 호버 배경 컬러 계산 (라이트=White, 다크=Black)
     final brightness = Theme.of(context).brightness;
     // 대비 강화: 다크모드 더 밝게, 라이트모드 더 어둡게 (기존보다 1.5~2배 강도)
@@ -550,14 +542,14 @@ class _UnifiedMenuState extends ConsumerState<UnifiedMenu> {
                 height: 40,
                 margin: const EdgeInsets.only(left: 8, right: 8),
                 decoration: BoxDecoration(
-                  color: isHover ? baseTextColor : Colors.transparent,
+                  color: isHover ? Colors.white : Colors.transparent,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
               Icon(
                 item.subIcon ?? item.icon,
                 size: 18,
-                color: baseTextColor.withValues(alpha: isHover ? 1 : 0.85),
+                color: Colors.white.withValues(alpha: isHover ? 1 : 0.85),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -568,7 +560,7 @@ class _UnifiedMenuState extends ConsumerState<UnifiedMenu> {
                     Text(
                       item.title,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: baseTextColor,
+                        color: Colors.white,
                         fontWeight: isHover ? FontWeight.w700 : FontWeight.w500,
                         letterSpacing: 0.15,
                       ),
@@ -580,7 +572,7 @@ class _UnifiedMenuState extends ConsumerState<UnifiedMenu> {
                           item.tooltip!,
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
-                                color: baseTextColor.withValues(alpha: 0.7),
+                                color: Colors.white.withValues(alpha: 0.7),
                                 height: 1.0,
                               ),
                         ),

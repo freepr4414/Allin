@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../constants/app_constants.dart';
 import '../models/unified_menu_models.dart';
 import '../models/unified_route_registry.dart';
 import '../providers/auth_provider.dart';
@@ -8,9 +9,9 @@ import '../providers/navigation_provider.dart';
 import '../providers/ui_provider.dart';
 import '../utils/responsive.dart';
 import '../widgets/side_panel.dart';
+import '../widgets/unified_menu_widget.dart';
 import 'components/header/desktop_header.dart';
 import 'components/header/mobile_header.dart';
-import 'components/sidebar/sidebar_overlay.dart';
 
 class ResponsiveLayout extends ConsumerStatefulWidget {
   const ResponsiveLayout({super.key});
@@ -29,6 +30,14 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isMobile = Responsive.isMobile(context);
+    final isTablet = Responsive.isTablet(context);
+    
+    print('=== ResponsiveLayout 화면 크기 ===');
+    print('화면 크기: ${screenSize.width} x ${screenSize.height}');
+    print('모바일: $isMobile, 태블릿: $isTablet, 데스크탑: ${!isMobile && !isTablet}');
+    
     // 반응형 전환 시 드롭다운 상태 리셋
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_isDropdownOpen && !Responsive.isDesktop(context)) {
@@ -39,9 +48,20 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
       }
     });
 
-    if (Responsive.isMobile(context)) {
+    // 최소 크기 제약 적용
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        minWidth: 800.0,
+        minHeight: 600.0,
+      ),
+      child: _buildResponsiveContent(isMobile, isTablet),
+    );
+  }
+
+  Widget _buildResponsiveContent(bool isMobile, bool isTablet) {
+    if (isMobile) {
       return _buildMobileLayout();
-    } else if (Responsive.isTablet(context)) {
+    } else if (isTablet) {
       return _buildTabletLayout();
     } else {
       return _buildDesktopLayout();
@@ -60,11 +80,7 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
               Container(
                 height: 60,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [const Color(0xFF3498DB), const Color(0xFF2980B9)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  color: Theme.of(context).colorScheme.primary,
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.1),
@@ -81,20 +97,58 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
                   ),
                 ),
               ),
-              // 메인 콘텐츠
-              Expanded(child: _getCurrentScreen()),
+              // 메인 영역
+              Expanded(
+                child: Row(
+                  children: [
+                    // 중앙 콘텐츠
+                    Expanded(child: _getCurrentScreen()),
+                    // 우측 사이드바 (조건부 표시)
+                    if (_isRightSidebarOpen)
+                      SizedBox(width: 450, child: _buildRightSidebar()),
+                  ],
+                ),
+              ),
               // 하단 푸터
               _buildFooter(),
             ],
           ),
 
-          // 사이드바 오버레이
-          SidebarOverlay(
-            isLeftVisible: _isLeftSidebarOpen,
-            isRightVisible: _isRightSidebarOpen,
-            onToggleLeft: () => setState(() => _isLeftSidebarOpen = false),
-            onToggleRight: () => setState(() => _isRightSidebarOpen = false),
-          ),
+          // 왼쪽 사이드바 오버레이만 유지
+          if (_isLeftSidebarOpen)
+            GestureDetector(
+              onTap: () => setState(() => _isLeftSidebarOpen = false),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                color: Colors.black.withValues(alpha: 0.5),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () {}, // 사이드바 클릭 시 닫히지 않도록
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * 0.85,
+                        height: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 8,
+                              offset: const Offset(2, 0),
+                            ),
+                          ],
+                        ),
+                        child: UnifiedMenu(
+                          displayType: MenuDisplayType.sidebar,
+                          onMenuItemSelected: () => setState(() => _isLeftSidebarOpen = false),
+                        ),
+                      ),
+                    ),
+                    Expanded(child: Container()),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -112,11 +166,7 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
               Container(
                 height: 60,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [const Color(0xFF3498DB), const Color(0xFF2980B9)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  color: Theme.of(context).colorScheme.primary,
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.1),
@@ -133,20 +183,58 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
                   ),
                 ),
               ),
-              // 메인 콘텐츠
-              Expanded(child: _getCurrentScreen()),
+              // 메인 영역
+              Expanded(
+                child: Row(
+                  children: [
+                    // 중앙 콘텐츠
+                    Expanded(child: _getCurrentScreen()),
+                    // 우측 사이드바 (조건부 표시)
+                    if (_isRightSidebarOpen)
+                      SizedBox(width: 450, child: _buildRightSidebar()),
+                  ],
+                ),
+              ),
               // 하단 푸터
               _buildFooter(),
             ],
           ),
 
-          // 사이드바 오버레이
-          SidebarOverlay(
-            isLeftVisible: _isLeftSidebarOpen,
-            isRightVisible: _isRightSidebarOpen,
-            onToggleLeft: () => setState(() => _isLeftSidebarOpen = false),
-            onToggleRight: () => setState(() => _isRightSidebarOpen = false),
-          ),
+          // 왼쪽 사이드바 오버레이만 유지
+          if (_isLeftSidebarOpen)
+            GestureDetector(
+              onTap: () => setState(() => _isLeftSidebarOpen = false),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                color: Colors.black.withValues(alpha: 0.3),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () {}, // 사이드바 클릭 시 닫히지 않도록
+                      child: Container(
+                        width: 320,
+                        height: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 8,
+                              offset: const Offset(2, 0),
+                            ),
+                          ],
+                        ),
+                        child: UnifiedMenu(
+                          displayType: MenuDisplayType.sidebar,
+                          onMenuItemSelected: () => setState(() => _isLeftSidebarOpen = false),
+                        ),
+                      ),
+                    ),
+                    Expanded(child: Container()),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -195,9 +283,9 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
                 top: Responsive.getResponsiveValue(
                   context,
                   mobile: 55,
-                  tablet: 65,
-                  desktop: 75,
-                ), // 헤더보다 5px 위로 올림
+                  tablet: 55,
+                  desktop: 55,
+                ), // 헤더 높이가 60으로 통일되어 5px 아래로 조정
                 left: _dropdownLeft.clamp(
                   0.0,
                   MediaQuery.of(context).size.width - 220,
@@ -218,8 +306,8 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
       height: Responsive.getResponsiveValue(
         context,
         mobile: 60,
-        tablet: 70,
-        desktop: 80, // 데스크탑도 1단으로 통일
+        tablet: 60,
+        desktop: 60, // 모바일과 동일하게 통일
       ),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary,
