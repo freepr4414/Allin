@@ -1,0 +1,293 @@
+{
+	"folders": [
+		{
+			"name": "naracontrol",
+			"path": "./naracontrol"
+		},
+		{
+			"name": "naradevice",
+			"path": "./naradevice"
+		},
+		{
+			"name": "naradesk",
+			"path": "./naradesk"
+		},
+		{
+			"name": "narabackend",
+			"path": "./narabackend"
+		},
+		{
+			"name": "naradbmake",
+			"path": "./naradbmake"
+		},
+		{
+			"name": "sampleui",
+			"path": "./sampleui"
+		},
+	],
+	"settings": {
+		"files.exclude": {
+			"**/node_modules": true,
+			"**/build": true,
+			"**/.dart_tool": true,
+			"**/bin": true,
+			"**/pkg": true
+		},
+		"search.exclude": {
+			"**/node_modules": true,
+			"**/build": true,
+			"**/.dart_tool": true,
+			"**/bin": true,
+			"**/pkg": true
+		},
+		"editor.renderLineHighlight": "all",
+		"workbench.colorCustomizations": {
+			"editor.lineHighlightBackground": "#264f7840",
+			"editor.lineHighlightBorder": "#007acc80"
+		},
+		"editor.wordWrap": "on",
+		"editor.fontSize": 14,
+		"editor.tabSize": 2,
+		"editor.insertSpaces": true,
+		"files.autoSave": "afterDelay",
+		"files.autoSaveDelay": 500,
+		"dart.flutterHotReloadOnSave": "all",
+		"dart.hotReloadOnSave": "all",
+		"dart.previewFlutterUiGuides": true,
+		"dart.flutterCreateAndroidLanguage": "kotlin",
+		"dart.flutterCreateIOSLanguage": "swift",
+		"dart.debugExternalPackageLibraries": false,
+		"dart.debugSdkLibraries": false,
+		"dart.analysisServerFolding": true,
+		"dart.lineLength": 80,
+		"dart.completeFunctionCalls": true,
+		"dart.enableSdkFormatter": true,
+		"dart.insertArgumentPlaceholders": true,
+		"dart.updateImportsOnRename": true,
+		"dart.runPubGetOnPubspecChanges": "prompt",
+		"go.formatTool": "goimports",
+		"go.useLanguageServer": true,
+		"go.toolsManagement.autoUpdate": true,
+		"folder-color.pathColors": [
+			{
+				"folderPath": "naradesk",
+				"color": "foldercolorizer.color_00ccff"
+			},
+			{
+				"folderPath": "naradevice",
+				"color": "foldercolorizer.color_ff6600"
+			},
+			{
+				"folderPath": "sampleui",
+				"color": "foldercolorizer.color_33cc33"
+			},
+			{
+				"folderPath": "naracontrol",
+				"color": "foldercolorizer.color_cc3399"
+			},
+			{
+				"folderPath": "narabackend",
+				"color": "foldercolorizer.color_ffcc00"
+			},
+			{
+				"folderPath": "naradbmake",
+				"color": "foldercolorizer.color_9933cc"
+			},
+			{
+				"folderPath": "c:\\SoAllin\\Allin\\naradbmake\\",
+				"color": "foldercolorizer.color_00ccff"
+			},
+			{
+				"folderPath": "c:\\SoAllin\\Allin\\naradesk\\lib\\main.dart\\",
+				"color": "foldercolorizer.color_33cc00"
+			}
+		],
+		"files.associations": {
+			"*.rh": "cpp"
+		}
+	},
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "Flutter: Run naradesk",
+				"type": "shell",
+				"command": "flutter",
+				"args": ["run", "-d", "windows"],
+				"options": {
+					"cwd": "${workspaceFolder:naradesk}"
+				},
+				"group": "build",
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"focus": false,
+					"panel": "new"
+				}
+			},
+			{
+				"label": "Flutter: Run naradevice",
+				"type": "shell",
+				"command": "flutter",
+				"args": ["run", "-d", "windows"],
+				"options": {
+					"cwd": "${workspaceFolder:naradevice}"
+				},
+				"group": "build",
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"focus": false,
+					"panel": "new"
+				}
+			},
+			{
+				"label": "Flutter: Run sampleui",
+				"type": "shell",
+				"command": "flutter",
+				"args": ["run", "-d", "windows"],
+				"options": {
+					"cwd": "${workspaceFolder:sampleui}"
+				},
+				"group": "build",
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"focus": false,
+					"panel": "new"
+				}
+			},
+			{
+				"label": "Go: Build naracontrol",
+				"type": "shell",
+				"command": "go",
+				"args": ["build", "-o", "bin/naracontrol.exe", "./src"],
+				"options": {
+					"cwd": "${workspaceFolder:naracontrol}"
+				},
+				"group": {
+					"kind": "build",
+					"isDefault": true
+				},
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"focus": false,
+					"panel": "shared"
+				}
+			},
+			{
+				"label": "Go: Run naracontrol",
+				"type": "shell",
+				"command": "./bin/naracontrol.exe",
+				"options": {
+					"cwd": "${workspaceFolder:naracontrol}"
+				},
+				"group": "test",
+				"dependsOn": "Go: Build naracontrol",
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"focus": false,
+					"panel": "new"
+				}
+			},
+			{
+				"label": "Go: Build narabackend",
+				"type": "shell",
+				"command": "go",
+				"args": ["build", "-o", "bin/narabackend.exe", "./src"],
+				"options": {
+					"cwd": "${workspaceFolder:narabackend}"
+				},
+				"group": "build",
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"focus": false,
+					"panel": "shared"
+				}
+			},
+			{
+				"label": "Go: Build naradbmake",
+				"type": "shell",
+				"command": "go",
+				"args": ["build", "-o", "bin/naradbmake.exe", "./src"],
+				"options": {
+					"cwd": "${workspaceFolder:naradbmake}"
+				},
+				"group": "build",
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"focus": false,
+					"panel": "shared"
+				}
+			}
+		]
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "Debug naradesk",
+				"type": "dart",
+				"request": "launch",
+				"cwd": "${workspaceFolder:naradesk}",
+				"program": "lib/main.dart"
+			},
+			{
+				"name": "Debug naradevice",
+				"type": "dart",
+				"request": "launch",
+				"cwd": "${workspaceFolder:naradevice}",
+				"program": "lib/main.dart"
+			},
+			{
+				"name": "Debug sampleui",
+				"type": "dart",
+				"request": "launch",
+				"cwd": "${workspaceFolder:sampleui}",
+				"program": "lib/main.dart"
+			},
+			{
+				"name": "Debug naracontrol",
+				"type": "go",
+				"request": "launch",
+				"mode": "debug",
+				"program": "${workspaceFolder:naracontrol}/src",
+				"cwd": "${workspaceFolder:naracontrol}"
+			},
+			{
+				"name": "Debug narabackend",
+				"type": "go",
+				"request": "launch",
+				"mode": "debug",
+				"program": "${workspaceFolder:narabackend}/src",
+				"cwd": "${workspaceFolder:narabackend}"
+			},
+			{
+				"name": "Debug naradbmake",
+				"type": "go",
+				"request": "launch",
+				"mode": "debug",
+				"program": "${workspaceFolder:naradbmake}/src",
+				"cwd": "${workspaceFolder:naradbmake}"
+			}
+		]
+	},
+	"extensions": {
+		"recommendations": [
+			"dart-code.dart-code",
+			"dart-code.flutter",
+			"golang.go",
+			"ms-vscode.vscode-json",
+			"johnpapa.vscode-peacock",
+			"formulahendry.code-runner",
+			"aaron-bond.better-comments",
+			"pkief.material-icon-theme",
+			"stuart.unique-window-colors",
+			"foldercolorizer.folder-colorizer"
+		]
+	}
+}
