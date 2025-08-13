@@ -85,4 +85,44 @@ class Responsive {
       desktop: 80.0,
     );
   }
+
+  /// 디바이스 타입 반환
+  static DeviceType getDeviceType(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+
+    if (width < ResponsiveBreakpoints.mobile) {
+      return DeviceType.mobile;
+    } else if (width < ResponsiveBreakpoints.desktop) {
+      return DeviceType.tablet;
+    } else {
+      return DeviceType.desktop;
+    }
+  }
+
+  /// 작은 화면 여부 확인 (모바일 + 태블릿)
+  static bool isSmallScreen(BuildContext context) {
+    return !isDesktop(context);
+  }
+
+  /// 화면 크기 로그 출력 (디버그용)
+  static void logScreenSize(BuildContext context, String location) {
+    final screenSize = MediaQuery.of(context).size;
+    final deviceType = getDeviceType(context);
+    print('=== $location ===');
+    print('화면 크기: ${screenSize.width} x ${screenSize.height}');
+    print('디바이스 타입: ${deviceType.name}');
+  }
+
+  /// 반응형 아이콘 크기
+  static double getResponsiveIconSize(BuildContext context) {
+    return responsive<double>(
+      context,
+      mobile: AppConstants.mobileIconSize,
+      tablet: AppConstants.tabletIconSize,
+      desktop: AppConstants.desktopIconSize,
+    );
+  }
 }
+
+/// 디바이스 타입 열거형
+enum DeviceType { mobile, tablet, desktop }

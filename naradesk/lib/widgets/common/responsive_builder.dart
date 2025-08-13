@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../constants/app_constants.dart';
+import '../../utils/responsive.dart';
 
 /// 반응형 디자인 표준화 위젯
 class ResponsiveBuilder extends StatelessWidget {
@@ -38,7 +39,7 @@ class ResponsiveBuilder extends StatelessWidget {
     );
   }
 
-  /// 반응형 값 반환 헬퍼
+  /// 반응형 값 반환 헬퍼 (Responsive 클래스 위임)
   static T responsive<T>(
     BuildContext context, {
     required T mobile,
@@ -47,55 +48,54 @@ class ResponsiveBuilder extends StatelessWidget {
     double? mobileBreakpoint,
     double? tabletBreakpoint,
   }) {
-    final width = MediaQuery.of(context).size.width;
-    final mobileMax = mobileBreakpoint ?? AppConstants.mobileBreakpoint;
-    final tabletMax = tabletBreakpoint ?? AppConstants.tabletBreakpoint;
+    // 커스텀 브레이크포인트가 있으면 직접 계산, 없으면 Responsive 클래스 사용
+    if (mobileBreakpoint != null || tabletBreakpoint != null) {
+      final width = MediaQuery.of(context).size.width;
+      final mobileMax = mobileBreakpoint ?? AppConstants.mobileBreakpoint;
+      final tabletMax = tabletBreakpoint ?? AppConstants.tabletBreakpoint;
 
-    if (width < mobileMax) {
-      return mobile;
-    } else if (width < tabletMax) {
-      return tablet ?? desktop;
+      if (width < mobileMax) {
+        return mobile;
+      } else if (width < tabletMax) {
+        return tablet ?? desktop;
+      } else {
+        return desktop;
+      }
     } else {
-      return desktop;
+      return Responsive.responsive<T>(
+        context,
+        mobile: mobile,
+        tablet: tablet,
+        desktop: desktop,
+      );
     }
   }
 
-  /// 현재 디바이스 타입 반환
+  /// 현재 디바이스 타입 반환 (Responsive 클래스 위임)
   static DeviceType getDeviceType(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-
-    if (width < AppConstants.mobileBreakpoint) {
-      return DeviceType.mobile;
-    } else if (width < AppConstants.tabletBreakpoint) {
-      return DeviceType.tablet;
-    } else {
-      return DeviceType.desktop;
-    }
+    return Responsive.getDeviceType(context);
   }
 
-  /// 모바일 여부 확인
+  /// 모바일 여부 확인 (Responsive 클래스 위임)
   static bool isMobile(BuildContext context) {
-    return getDeviceType(context) == DeviceType.mobile;
+    return Responsive.isMobile(context);
   }
 
-  /// 태블릿 여부 확인
+  /// 태블릿 여부 확인 (Responsive 클래스 위임)
   static bool isTablet(BuildContext context) {
-    return getDeviceType(context) == DeviceType.tablet;
+    return Responsive.isTablet(context);
   }
 
-  /// 데스크톱 여부 확인
+  /// 데스크톱 여부 확인 (Responsive 클래스 위임)
   static bool isDesktop(BuildContext context) {
-    return getDeviceType(context) == DeviceType.desktop;
+    return Responsive.isDesktop(context);
   }
 
-  /// 작은 화면 여부 확인 (모바일 + 태블릿)
+  /// 작은 화면 여부 확인 (Responsive 클래스 위임)
   static bool isSmallScreen(BuildContext context) {
-    return !isDesktop(context);
+    return Responsive.isSmallScreen(context);
   }
 }
-
-/// 디바이스 타입 열거형
-enum DeviceType { mobile, tablet, desktop }
 
 /// 반응형 패딩 위젯
 class ResponsivePadding extends StatelessWidget {

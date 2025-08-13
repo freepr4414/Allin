@@ -7,6 +7,8 @@ import 'providers/font_size_provider.dart';
 import 'providers/theme_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/main/main_layout_responsive.dart';
+import 'utils/font_theme_utils.dart';
+import 'utils/responsive.dart';
 
 void main() {
   runApp(const ProviderScope(child: StudyCafeApp()));
@@ -24,12 +26,12 @@ class StudyCafeApp extends ConsumerWidget {
 
     final lightTheme = themeNotifier.lightTheme.copyWith(
       // 폰트크기 설정을 테마에 적용 (라이트 모드 색상)
-      textTheme: _buildTextTheme(currentFontSize, isDark: false),
+      textTheme: FontThemeUtils.buildTextTheme(currentFontSize, isDark: false),
     );
 
     final darkTheme = themeNotifier.darkTheme.copyWith(
       // 폰트크기 설정을 테마에 적용 (다크 모드 색상)
-      textTheme: _buildTextTheme(currentFontSize, isDark: true),
+      textTheme: FontThemeUtils.buildTextTheme(currentFontSize, isDark: true),
     );
 
     return MaterialApp(
@@ -42,10 +44,8 @@ class StudyCafeApp extends ConsumerWidget {
       home: const AuthWrapper(),
       debugShowCheckedModeBanner: false,
       builder: (context, child) {
-        // 최소 크기 로그 추가
-        final screenSize = MediaQuery.of(context).size;
-        print('=== MaterialApp Builder ===');
-        print('화면 크기: ${screenSize.width} x ${screenSize.height}');
+        // 통합된 화면 크기 로그
+        Responsive.logScreenSize(context, 'MaterialApp Builder');
         
         // 강력한 최소 크기 제약 적용
         return Container(
@@ -72,34 +72,6 @@ class StudyCafeApp extends ConsumerWidget {
           ),
         );
       },
-    );
-  }
-
-  /// 폰트크기 설정에 따른 텍스트 테마 생성
-  TextTheme _buildTextTheme(double baseFontSize, {bool isDark = false}) {
-    final ratio = baseFontSize / 16.0; // 기본 16px 기준으로 비율 계산
-    // Theme.of(context) 사용 불가 (context 외부) -> 밝기 기준 기본 색을 MaterialScheme에 위임
-    final baseColor = isDark
-        ? const Color(0xFFFFFFFF)
-        : const Color(0xFF1A1A1A);
-
-    // 필요 시 contrast 조정을 위해 밝기별로 색상 한 곳에서 관리
-    return TextTheme(
-      displayLarge: TextStyle(fontSize: 57 * ratio, color: baseColor),
-      displayMedium: TextStyle(fontSize: 45 * ratio, color: baseColor),
-      displaySmall: TextStyle(fontSize: 36 * ratio, color: baseColor),
-      headlineLarge: TextStyle(fontSize: 32 * ratio, color: baseColor),
-      headlineMedium: TextStyle(fontSize: 28 * ratio, color: baseColor),
-      headlineSmall: TextStyle(fontSize: 24 * ratio, color: baseColor),
-      titleLarge: TextStyle(fontSize: 22 * ratio, color: baseColor),
-      titleMedium: TextStyle(fontSize: 16 * ratio, color: baseColor),
-      titleSmall: TextStyle(fontSize: 14 * ratio, color: baseColor),
-      labelLarge: TextStyle(fontSize: 14 * ratio, color: baseColor),
-      labelMedium: TextStyle(fontSize: 12 * ratio, color: baseColor),
-      labelSmall: TextStyle(fontSize: 11 * ratio, color: baseColor),
-      bodyLarge: TextStyle(fontSize: 16 * ratio, color: baseColor),
-      bodyMedium: TextStyle(fontSize: 14 * ratio, color: baseColor),
-      bodySmall: TextStyle(fontSize: 12 * ratio, color: baseColor),
     );
   }
 }

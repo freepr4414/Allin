@@ -30,13 +30,11 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
     final isMobile = Responsive.isMobile(context);
     final isTablet = Responsive.isTablet(context);
     
-    print('=== ResponsiveLayout 화면 크기 ===');
-    print('화면 크기: ${screenSize.width} x ${screenSize.height}');
-    print('모바일: $isMobile, 태블릿: $isTablet, 데스크탑: ${!isMobile && !isTablet}');
+    // 통합된 화면 크기 로그
+    Responsive.logScreenSize(context, 'ResponsiveLayout');
     
     // 반응형 전환 시 드롭다운 상태 리셋
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -51,8 +49,8 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
     // 최소 크기 제약 적용
     return ConstrainedBox(
       constraints: const BoxConstraints(
-        minWidth: 800.0,
-        minHeight: 600.0,
+        minWidth: AppConstants.minAppWidth,
+        minHeight: AppConstants.minAppHeight,
       ),
       child: _buildResponsiveContent(isMobile, isTablet),
     );
