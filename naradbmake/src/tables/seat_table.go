@@ -130,6 +130,8 @@ func CreateSeatTable(db *sql.DB) error {
 		"additional_amount INTEGER",
 		// 이동 등급
 		"move_grade INTEGER",
+		// 이동 등급2
+		"move_grade2 INTEGER",
 	}
 
 	// 각 필드 추가 쿼리 생성
@@ -151,9 +153,8 @@ func CreateSeatTable(db *sql.DB) error {
 
 	// 인덱스 생성 쿼리 목록 (이미 존재하면 생성하지 않음)
 	indexQueries := []string{
-		`CREATE INDEX IF NOT EXISTS idx_reading_room_seat ON seat_table (reading_room_code, seat_number);`,
+		`CREATE INDEX IF NOT EXISTS idx_room_seat ON seat_table (room_code, seat_number);`,
 		`CREATE INDEX IF NOT EXISTS idx_member_id ON seat_table (member_id);`,
-		`CREATE INDEX IF NOT EXISTS idx_usage_month ON seat_table (usage_month);`,
 		`CREATE INDEX IF NOT EXISTS idx_registration_date ON seat_table (registration_date);`,
 		`CREATE INDEX IF NOT EXISTS idx_card_number ON seat_table (card_number);`,
 		`CREATE INDEX IF NOT EXISTS idx_grade_number ON seat_table (grade_number);`,

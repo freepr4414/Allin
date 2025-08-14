@@ -21,7 +21,7 @@ func CreateRoomTable(db *sql.DB) error {
 	}
 	log.Println("room_table 테이블 기본 구조 생성 완료")
 
-	tableName := "company_image_table"
+	tableName := "room_table"
 	alterPrefix := fmt.Sprintf("ALTER TABLE %s ADD COLUMN IF NOT EXISTS ", tableName)
 
 	// 각 필드 개별 추가

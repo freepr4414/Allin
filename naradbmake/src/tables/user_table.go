@@ -81,9 +81,7 @@ func CreateUserTable(db *sql.DB) error {
 
 	// 인덱스 생성 쿼리 목록
 	indexQueries := []string{
-		`CREATE INDEX IF NOT EXISTS idx_business_name ON user_table (business_name);`,
-		`CREATE INDEX IF NOT EXISTS idx_business_number ON user_table (business_number);`,
-		`CREATE INDEX IF NOT EXISTS idx_representative_name ON user_table (representative_name);`,
+		`CREATE INDEX IF NOT EXISTS idx_serial_number ON user_table (serial_number);`,
 	}
 
 	// 인덱스 생성 실행

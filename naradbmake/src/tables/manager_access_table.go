@@ -79,9 +79,7 @@ func CreateManagerAccessTable(db *sql.DB) error {
 
 	// 인덱스 생성 쿼리 목록
 	indexQueries := []string{
-		`CREATE INDEX IF NOT EXISTS idx_business_name ON manager_access_table (business_name);`,
-		`CREATE INDEX IF NOT EXISTS idx_business_number ON manager_access_table (business_number);`,
-		`CREATE INDEX IF NOT EXISTS idx_representative_name ON manager_access_table (representative_name);`,
+		`CREATE INDEX IF NOT EXISTS idx_manager_id ON manager_access_table (manager_id);`,
 	}
 
 	// 인덱스 생성 실행

@@ -65,8 +65,6 @@ func CreateCompanyImageTable(db *sql.DB) error {
 	// 인덱스 생성 쿼리 목록
 	indexQueries := []string{
 		`CREATE INDEX IF NOT EXISTS idx_company_id ON company_image_table (company_id);`,
-		`CREATE INDEX IF NOT EXISTS idx_business_number ON company_image_table (business_number);`,
-		`CREATE INDEX IF NOT EXISTS idx_ceo_name ON company_image_table (ceo_name);`,
 	}
 
 	// 인덱스 생성 실행
