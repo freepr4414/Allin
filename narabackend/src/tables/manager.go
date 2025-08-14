@@ -22,7 +22,7 @@ import (
 // JSON 태그는 API 응답 시 필드명을 정의하고, db 태그는 데이터베이스 컬럼명을 정의합니다.
 type Manager struct {
 	ManagerID   string    `json:"manager_id" db:"manager_id"`
-	ManagerName string    `json:"manager_name" db:"manager_name"`
+	Name        string    `json:"name" db:"name"`
 	Password    string    `json:"password,omitempty" db:"password"`
 	Email       string    `json:"email" db:"email"`
 	Phone       string    `json:"phone" db:"phone"`
@@ -35,12 +35,12 @@ type Manager struct {
 // 생성(POST) 및 업데이트(PUT/PATCH) 연산에서 클라이언트가 전송하는 데이터를 파싱하는 데 사용됩니다.
 // 자동 생성되는 필드(시간 관련 필드)는 포함하지 않으며, 비밀번호는 별도 엔드포인트에서 처리합니다.
 type ManagerRequest struct {
-	ManagerID   string `json:"manager_id"`
-	ManagerName string `json:"manager_name"`
-	Password    string `json:"password"`
-	Email       string `json:"email"`
-	Phone       string `json:"phone"`
-	Role        string `json:"role"`
+	ManagerID string `json:"manager_id"`
+	Name      string `json:"name"`
+	Password  string `json:"password"`
+	Email     string `json:"email"`
+	Phone     string `json:"phone"`
+	Role      string `json:"role"`
 }
 
 // RegisterManagerRoutes는 manager_table 관련 REST API 엔드포인트를 등록합니다.
@@ -67,7 +67,7 @@ func GetManagers(w http.ResponseWriter, r *http.Request) {
 	// 허용된 필드 목록 정의 - 보안을 위해 화이트리스트 방식 사용
 	// 비밀번호 필드는 보안상 제외하여 노출 방지
 	allowedFields := []string{
-		"manager_id", "manager_name", "email", "phone", "role", "created_at", "updated_at",
+		"manager_id", "name", "email", "phone", "role", "created_at", "updated_at",
 	}
 
 	// X-Fields 헤더를 통한 필드 선택 처리
@@ -104,22 +104,26 @@ func GetManagers(w http.ResponseWriter, r *http.Request) {
 
 	// 지원하는 필터 파라미터 목록 (역할 기반 필터링)
 	filterParams := map[string]string{
-		"role": "role", // 관리자 역할별 필터링 (admin, manager, operator 등)
+		"role":       "role",       // 관리자 역할별 필터링 (admin, manager, operator 등)
+		"manager_id": "manager_id", // 특정 관리자 ID로 필터링
 	}
 
 	// URL 쿼리 파라미터에서 필터 조건 추출
+	log.Printf("요청된 쿼리 파라미터: %v", r.URL.Query())
 	for param, dbField := range filterParams {
 		if value := r.URL.Query().Get(param); value != "" {
+			log.Printf("필터 추가: %s = %s", param, value)
 			filters = append(filters, fmt.Sprintf("%s = $%d", dbField, paramIdx))
 			args = append(args, value)
 			paramIdx++
 		}
 	}
 
-	// 검색 기능 추가 (manager_name, email에 대한 부분 검색)
+	// 검색 기능 추가 (name, email에 대한 부분 검색)
 	// 관리자 이름이나 이메일 주소를 통한 유연한 검색 지원
 	if search := r.URL.Query().Get("search"); search != "" {
-		filters = append(filters, fmt.Sprintf("(manager_name LIKE $%d OR email LIKE $%d)", paramIdx, paramIdx+1))
+		log.Printf("검색어 추가: %s", search)
+		filters = append(filters, fmt.Sprintf("(name LIKE $%d OR email LIKE $%d)", paramIdx, paramIdx+1))
 		args = append(args, "%"+search+"%", "%"+search+"%")
 		paramIdx += 2
 	}
@@ -145,11 +149,11 @@ func GetManagers(w http.ResponseWriter, r *http.Request) {
 
 		// 허용된 정렬 필드인지 확인 (SQL 인젝션 방지)
 		allowedSortFields := map[string]bool{
-			"manager_id":   true,
-			"manager_name": true,
-			"email":        true,
-			"role":         true,
-			"created_at":   true,
+			"manager_id": true,
+			"name":       true,
+			"email":      true,
+			"role":       true,
+			"created_at": true,
 		}
 
 		if allowedSortFields[sort] {
@@ -161,6 +165,7 @@ func GetManagers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 쿼리 로깅
+	log.Printf("최종 필터 조건: %v", filters)
 	log.Printf("실행 쿼리: %s, 인자: %v", query, args)
 
 	// 쿼리 실행 - 인자 유무에 따른 조건부 실행
@@ -174,6 +179,8 @@ func GetManagers(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("데이터베이스 쿼리 오류: %v", err)
+		log.Printf("실패한 쿼리: %s", query)
+		log.Printf("실패한 인자: %v", args)
 		http.Error(w, "데이터 조회 중 오류가 발생했습니다", http.StatusInternalServerError)
 		return
 	}
@@ -262,9 +269,9 @@ func GetManager(w http.ResponseWriter, r *http.Request) {
 	// 보안상 비밀번호 필드는 조회에서 제외
 	// 모든 필드를 한 번에 조회하여 네트워크 왕복 최소화
 	err := utils.DB.QueryRowContext(ctx, `
-		SELECT manager_id, manager_name, email, phone, role, created_at, updated_at
+		SELECT manager_id, name, email, phone, role, created_at, updated_at
 		FROM manager_table WHERE manager_id = $1`, managerID).
-		Scan(&manager.ManagerID, &manager.ManagerName, &manager.Email, &manager.Phone,
+		Scan(&manager.ManagerID, &manager.Name, &manager.Email, &manager.Phone,
 			&manager.Role, &manager.CreatedAt, &manager.UpdatedAt)
 
 	// 실행 시간 로깅
@@ -306,10 +313,10 @@ func CreateManager(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 필수 필드 검증 - 관리자 계정 생성에 반드시 필요한 정보들
-	if req.ManagerID == "" || req.ManagerName == "" || req.Password == "" || req.Email == "" {
-		log.Printf("필수 필드 누락 - ManagerID: %s, ManagerName: %s, Email: %s", 
-			req.ManagerID, req.ManagerName, req.Email)
-		http.Error(w, "필수 필드가 누락되었습니다 (manager_id, manager_name, password, email)", http.StatusBadRequest)
+	if req.ManagerID == "" || req.Name == "" || req.Password == "" || req.Email == "" {
+		log.Printf("필수 필드 누락 - ManagerID: %s, Name: %s, Email: %s", 
+			req.ManagerID, req.Name, req.Email)
+		http.Error(w, "필수 필드가 누락되었습니다 (manager_id, name, password, email)", http.StatusBadRequest)
 		return
 	}
 
@@ -320,7 +327,7 @@ func CreateManager(w http.ResponseWriter, r *http.Request) {
 	// 시작 시간 로깅
 	startTime := time.Now()
 	log.Printf("Manager 생성 요청 시작 - ID: %s, Name: %s, Email: %s", 
-		req.ManagerID, req.ManagerName, req.Email)
+		req.ManagerID, req.Name, req.Email)
 
 	// 비밀번호 해싱 (실제 환경에서는 bcrypt 등을 사용해야 함)
 	// TODO: bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost) 구현 필요
@@ -332,17 +339,17 @@ func CreateManager(w http.ResponseWriter, r *http.Request) {
 	// - 비밀번호는 응답에서 제외
 	query := `
 		INSERT INTO manager_table (
-			manager_id, manager_name, password, email, phone, role, created_at, updated_at
+			manager_id, name, password, email, phone, role, created_at, updated_at
 		) VALUES (
 			$1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 		)
-		RETURNING manager_id, manager_name, email, phone, role, created_at, updated_at
+		RETURNING manager_id, name, email, phone, role, created_at, updated_at
 	`
 
 	var manager Manager
 	err := utils.DB.QueryRowContext(ctx, query,
-		req.ManagerID, req.ManagerName, hashedPassword, req.Email, req.Phone, req.Role,
-	).Scan(&manager.ManagerID, &manager.ManagerName, &manager.Email, &manager.Phone,
+		req.ManagerID, req.Name, hashedPassword, req.Email, req.Phone, req.Role,
+	).Scan(&manager.ManagerID, &manager.Name, &manager.Email, &manager.Phone,
 		&manager.Role, &manager.CreatedAt, &manager.UpdatedAt)
 
 	// 실행 시간 로깅
@@ -408,19 +415,19 @@ func UpdateManager(w http.ResponseWriter, r *http.Request) {
 	// - 비밀번호는 보안상 별도 엔드포인트에서만 변경 가능
 	query := `
 		UPDATE manager_table SET
-			manager_name = COALESCE(NULLIF($2, ''), manager_name),
+			name = COALESCE(NULLIF($2, ''), name),
 			email = COALESCE(NULLIF($3, ''), email),
 			phone = COALESCE(NULLIF($4, ''), phone),
 			role = COALESCE(NULLIF($5, ''), role),
 			updated_at = CURRENT_TIMESTAMP
 		WHERE manager_id = $1
-		RETURNING manager_id, manager_name, email, phone, role, created_at, updated_at
+		RETURNING manager_id, name, email, phone, role, created_at, updated_at
 	`
 
 	var manager Manager
 	err := utils.DB.QueryRowContext(ctx, query,
-		managerID, req.ManagerName, req.Email, req.Phone, req.Role,
-	).Scan(&manager.ManagerID, &manager.ManagerName, &manager.Email, &manager.Phone,
+		managerID, req.Name, req.Email, req.Phone, req.Role,
+	).Scan(&manager.ManagerID, &manager.Name, &manager.Email, &manager.Phone,
 		&manager.Role, &manager.CreatedAt, &manager.UpdatedAt)
 
 	// 실행 시간 및 결과 로깅

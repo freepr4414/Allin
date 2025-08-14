@@ -33,9 +33,6 @@ class _ResponsiveLayoutState extends ConsumerState<ResponsiveLayout> {
     final isMobile = Responsive.isMobile(context);
     final isTablet = Responsive.isTablet(context);
     
-    // 통합된 화면 크기 로그
-    Responsive.logScreenSize(context, 'ResponsiveLayout');
-    
     // 반응형 전환 시 드롭다운 상태 리셋
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_isDropdownOpen && !Responsive.isDesktop(context)) {

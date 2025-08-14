@@ -216,113 +216,42 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // 5단계 권한 레벨 테스트 계정 안내
-                Text(
-                  '권한별 테스트 계정',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: scheme.onSurface.withValues(alpha: 0.6),
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.2,
+                // 테스트 계정 안내 (qqqq/1111)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: scheme.outline.withValues(alpha: 0.2),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                _RoleButtons(
-                  onSelect: (user, pass) {
-                    _usernameController.text = user;
-                    _passwordController.text = pass;
-                  },
+                  child: Column(
+                    children: [
+                      Text(
+                        '테스트 계정',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.8),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'ID: qqqq / PW: 1111',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.7),
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
         ),
       ),
-    );
-  }
-}
-
-/// 권한별 테스트 계정 버튼 묶음
-class _RoleButtons extends StatelessWidget {
-  const _RoleButtons({required this.onSelect});
-
-  final void Function(String username, String password) onSelect;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
-    Widget roleButton({
-      required String label,
-      required String user,
-      required String pass,
-      required Color color,
-    }) {
-      final borderColor = color.withValues(alpha: 0.4);
-      return OutlinedButton(
-        onPressed: () => onSelect(user, pass),
-        style:
-            OutlinedButton.styleFrom(
-              foregroundColor: color,
-              side: BorderSide(color: borderColor),
-              textStyle: const TextStyle(fontSize: 12, height: 1.25),
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-            ).merge(
-              ButtonStyle(
-                overlayColor: WidgetStatePropertyAll(
-                  color.withValues(alpha: 0.08),
-                ),
-              ),
-            ),
-        child: Text(label, textAlign: TextAlign.center),
-      );
-    }
-
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: roleButton(
-                label: '최고 관리자\n(Level 1)',
-                user: 'admin',
-                pass: 'admin',
-                color: scheme.error,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: roleButton(
-                label: '상급 관리자\n(Level 2)',
-                user: 'manager',
-                pass: 'manager',
-                color: scheme.tertiary,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: roleButton(
-                label: '일반 직원\n(Level 4)',
-                user: 'staff',
-                pass: 'staff',
-                color: scheme.primary,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: roleButton(
-                label: '제한된 직원\n(Level 5)',
-                user: 'user',
-                pass: 'user',
-                color: scheme.onSurface.withValues(alpha: 0.65),
-              ),
-            ),
-          ],
-        ),
-      ],
     );
   }
 }
