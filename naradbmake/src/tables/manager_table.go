@@ -87,5 +87,64 @@ func CreateManagerTable(db *sql.DB) error {
 	}
 
 	log.Println("manager_table 테이블과 인덱스가 성공적으로 생성되었습니다.")
+
+	// 기본 관리자 데이터 삽입
+	log.Println("기본 관리자 데이터를 삽입합니다...")
+	
+	// 기본 관리자가 이미 존재하는지 확인
+	var exists bool
+	checkQuery := `SELECT EXISTS(SELECT 1 FROM manager_table WHERE manager_id = $1);`
+	err = db.QueryRow(checkQuery, "qqqq").Scan(&exists)
+	if err != nil {
+		return fmt.Errorf("기본 관리자 존재 확인 중 오류: %v", err)
+	}
+
+	// 기본 관리자가 존재하지 않는 경우에만 삽입
+	if !exists {
+		insertQuery := `
+			INSERT INTO manager_table (
+				manager_id, 
+				password, 
+				name, 
+				email, 
+				super_admin, 
+				admin, 
+				role, 
+				phone, 
+				notes,
+				created_at, 
+				updated_at
+			) VALUES (
+				$1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+			);`
+
+		_, err = db.Exec(insertQuery,
+			"qqqq",                    // manager_id
+			"1111",                    // password (실제 환경에서는 해시화 필요)
+			"기본 관리자",              // name
+			"admin@example.com",       // email
+			true,                      // super_admin
+			true,                      // admin
+			2,                         // role (관리자=2)
+			"010-0000-0000",          // phone
+			"시스템 기본 관리자 계정",  // notes
+		)
+
+		if err != nil {
+			return fmt.Errorf("기본 관리자 데이터 삽입 중 오류: %v", err)
+		}
+
+		log.Println("기본 관리자 데이터가 성공적으로 삽입되었습니다.")
+		log.Println("  - manager_id: qqqq")
+		log.Println("  - password: 1111")
+		log.Println("  - name: 기본 관리자")
+		log.Println("  - email: admin@example.com")
+		log.Println("  - super_admin: true")
+		log.Println("  - admin: true")
+		log.Println("  - role: 2 (관리자)")
+	} else {
+		log.Println("기본 관리자(qqqq)가 이미 존재합니다. 건너뜁니다.")
+	}
+
 	return nil
 }

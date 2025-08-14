@@ -89,6 +89,24 @@ func main() {
 	// seat_table 관련 라우트 등록 필요
 	tables.RegisterSeatRoutes(r)
 
+	// company_table 관련 라우트 등록
+	tables.RegisterCompanyRoutes(r)
+
+	// manager_table 관련 라우트 등록
+	tables.RegisterManagerRoutes(r)
+
+	// user_table 관련 라우트 등록
+	tables.RegisterUserRoutes(r)
+
+	// company_image_table 관련 라우트 등록
+	tables.RegisterCompanyImageRoutes(r)
+
+	// manager_access_table 관련 라우트 등록
+	tables.RegisterManagerAccessRoutes(r)
+
+	// manager_company_table 관련 라우트 등록
+	tables.RegisterManagerCompanyRoutes(r)
+
 	// 로깅 미들웨어와 CORS 미들웨어를 함께 적용
 	handler := utils.LoggingMiddleware(utils.CorsMiddleware(r))
 	http.Handle("/", handler)
