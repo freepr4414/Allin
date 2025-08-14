@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../constants/app_constants.dart';
 import '../../models/seat.dart';
 import '../../providers/seat_provider.dart';
 import '../../utils/responsive.dart';
-import '../../widgets/seat_widget.dart';
+import 'widgets/seat_grid_widget.dart';
+import 'widgets/seat_layout_header_widget.dart';
 
+/// 좌석 배치 화면 - 위젯들로 구성된 간소화된 화면
 class SeatLayoutScreen extends ConsumerStatefulWidget {
   const SeatLayoutScreen({super.key});
 
@@ -18,19 +19,12 @@ class _SeatLayoutScreenState extends ConsumerState<SeatLayoutScreen> {
   OverlayEntry? _currentPopupEntry;
   String? _currentPopupSeatId;
 
-  // InteractiveViewer 제어를 위한 컨트롤러
-  late TransformationController _transformationController;
-
-  // 이전 화면 크기를 추적하기 위한 변수
-  Size? _previousScreenSize;
-
   // 배치도 설정 캐시
   Map<String, double>? _layoutSettings;
 
   @override
   void initState() {
     super.initState();
-    _transformationController = TransformationController();
     _loadLayoutSettings();
   }
 
@@ -51,7 +45,6 @@ class _SeatLayoutScreenState extends ConsumerState<SeatLayoutScreen> {
   @override
   void dispose() {
     _removeCurrentPopup();
-    _transformationController.dispose();
     super.dispose();
   }
 
@@ -61,20 +54,9 @@ class _SeatLayoutScreenState extends ConsumerState<SeatLayoutScreen> {
     _currentPopupSeatId = null;
   }
 
-  /// 캔버스 너비 가져오기
-  double _getCanvasWidth() {
-    return _layoutSettings?['width'] ?? 1800.0;
-  }
-
-  /// 캔버스 높이 가져오기
-  double _getCanvasHeight() {
-    return _layoutSettings?['height'] ?? 900.0;
-  }
-
   @override
   Widget build(BuildContext context) {
     final seats = ref.watch(seatProvider);
-    final seatStats = ref.watch(seatStatisticsProvider);
 
     // 좌석이 변경될 때마다 배치도 설정도 다시 로드
     ref.listen(seatProvider, (previous, next) {
@@ -89,44 +71,7 @@ class _SeatLayoutScreenState extends ConsumerState<SeatLayoutScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 좌석 배치 헤더
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: Responsive.getResponsivePadding(context),
-              vertical: Responsive.getResponsiveMargin(context),
-            ),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(8.0),
-              border: Border.all(
-                color: Theme.of(
-                  context,
-                ).colorScheme.outline.withValues(alpha: 0.2),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.event_seat,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: Responsive.getResponsiveValue(
-                    context,
-                    mobile: AppConstants.mobileIconSize,
-                    tablet: AppConstants.tabletIconSize,
-                    desktop: AppConstants.desktopIconSize,
-                  ),
-                ),
-                SizedBox(width: Responsive.getResponsiveMargin(context)),
-                Text(
-                  '좌석 현황',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Spacer(),
-                Flexible(child: _buildSeatLegend(context, seatStats)),
-              ],
-            ),
-          ),
+          const SeatLayoutHeaderWidget(),
 
           SizedBox(height: Responsive.getResponsivePadding(context)),
 
@@ -143,245 +88,15 @@ class _SeatLayoutScreenState extends ConsumerState<SeatLayoutScreen> {
                   ).colorScheme.outline.withValues(alpha: 0.2),
                 ),
               ),
-              child: _buildSeatGrid(context, ref, seats),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSeatLegend(BuildContext context, Map<SeatStatus, int> stats) {
-    if (Responsive.isMobile(context)) {
-            // 모바일에서는 Wrap으로 자동 줄바꿈
-      return Wrap(
-        alignment: WrapAlignment.end,
-        spacing: Responsive.getResponsiveMargin(context),
-        runSpacing: Responsive.getResponsiveMargin(context) / 2,
-        children: [
-          _buildLegendItem(
-            context,
-            '이용가능',
-            Colors.green,
-            stats[SeatStatus.available] ?? 0,
-          ),
-          _buildLegendItem(
-            context,
-            '사용중',
-            Colors.red,
-            stats[SeatStatus.occupied] ?? 0,
-          ),
-          _buildLegendItem(
-            context,
-            '예약됨',
-            Colors.blue,
-            stats[SeatStatus.reserved] ?? 0,
-          ),
-          _buildLegendItem(
-            context,
-            '점검중',
-            Colors.orange,
-            stats[SeatStatus.maintenance] ?? 0,
-          ),
-          _buildLegendItem(
-            context,
-            '청소중',
-            Colors.purple,
-            stats[SeatStatus.cleaning] ?? 0,
-          ),
-          _buildLegendItem(
-            context,
-            '고장',
-            Colors.grey,
-            stats[SeatStatus.outOfOrder] ?? 0,
-          ),
-        ],
-      );
-    } else {
-      // 태블릿/데스크탑에서는 한 줄로 배치
-      return Wrap(
-        spacing: Responsive.getResponsivePadding(context),
-        children: [
-          _buildLegendItem(
-            context,
-            '이용가능',
-            Colors.green,
-            stats[SeatStatus.available] ?? 0,
-          ),
-          _buildLegendItem(
-            context,
-            '사용중',
-            Colors.red,
-            stats[SeatStatus.occupied] ?? 0,
-          ),
-          _buildLegendItem(
-            context,
-            '예약됨',
-            Colors.blue,
-            stats[SeatStatus.reserved] ?? 0,
-          ),
-          _buildLegendItem(
-            context,
-            '점검중',
-            Colors.orange,
-            stats[SeatStatus.maintenance] ?? 0,
-          ),
-          _buildLegendItem(
-            context,
-            '청소중',
-            Colors.purple,
-            stats[SeatStatus.cleaning] ?? 0,
-          ),
-          _buildLegendItem(
-            context,
-            '고장',
-            Colors.grey,
-            stats[SeatStatus.outOfOrder] ?? 0,
-          ),
-        ],
-      );
-    }
-  }
-
-  Widget _buildLegendItem(
-    BuildContext context,
-    String label,
-    Color color,
-    int count,
-  ) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: Responsive.getResponsiveValue(
-            context,
-            mobile: 6.0,
-            tablet: 8.0,
-            desktop: 10.0,
-          ),
-          height: Responsive.getResponsiveValue(
-            context,
-            mobile: 6.0,
-            tablet: 8.0,
-            desktop: 10.0,
-          ),
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        SizedBox(width: Responsive.getResponsiveMargin(context) / 4),
-        Flexible(
-          child: Text(
-            '$label ($count)',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.7),
-              fontSize: Responsive.getResponsiveValue(
-                context,
-                mobile: AppConstants.mobileFontSize,
-                tablet: AppConstants.tabletFontSize,
-                desktop: AppConstants.desktopFontSize,
+              child: SeatGridWidget(
+                seats: seats,
+                layoutSettings: _layoutSettings,
+                onSeatTap: _showSeatPopupMenu,
               ),
             ),
-            overflow: TextOverflow.ellipsis,
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSeatGrid(BuildContext context, WidgetRef ref, List<Seat> seats) {
-    // 화면 크기 가져오기
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final currentScreenSize = Size(screenWidth, screenHeight);
-    final isSmallScreen = screenWidth < AppConstants.smallScreenWidth || 
-                         screenHeight < AppConstants.smallScreenHeight;
-
-    // 화면 크기 변화 감지 및 변환 리셋 (큰 변화가 있을 때만)
-    if (_previousScreenSize != null) {
-      final sizeDifference =
-          (currentScreenSize.width - _previousScreenSize!.width).abs() +
-          (currentScreenSize.height - _previousScreenSize!.height).abs();
-
-      // 크기 차이가 50픽셀 이상일 때만 리셋 (작은 변화 무시)
-      if (sizeDifference > 50) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            _transformationController.value = Matrix4.identity();
-          }
-        });
-      }
-    }
-    _previousScreenSize = currentScreenSize;
-
-    // 화면 크기에 따라 적응적 높이 설정
-    final containerHeight = isSmallScreen
-        ? screenHeight *
-              0.6 // 작은 화면에서는 60% 차지
-        : 600.0; // 큰 화면에서는 고정 높이
-
-    return SizedBox(
-      width: double.infinity,
-      height: containerHeight,
-      child: InteractiveViewer(
-        transformationController: _transformationController,
-        constrained: false,
-        boundaryMargin: const EdgeInsets.all(20),
-        minScale: 1.0, // 고정 스케일 (확대/축소 비활성화)
-        maxScale: 1.0, // 고정 스케일 (확대/축소 비활성화)
-        panEnabled: true, // 드래그 이동만 활성화
-        scaleEnabled: false, // 확대/축소 비활성화
-        child: Container(
-          // 저장된 배치도에서 캔버스 크기 가져오기 (기본값: 1800x900)
-          width: _getCanvasWidth(),
-          height: _getCanvasHeight(),
-          decoration: BoxDecoration(
-            color: Colors.grey[50],
-            border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Stack(
-            children: [
-              // 배경 그리드 표시 (위치 파악 도움)
-              _buildBackgroundGrid(context),
-              // 좌석들
-              ...seats.map((seat) => _buildPositionedSeat(context, ref, seat)),
-            ],
-          ),
-        ),
+        ],
       ),
-    );
-  }
-
-  // 배경 그리드 생성 (위치 파악을 돕기 위함)
-  Widget _buildBackgroundGrid(BuildContext context) {
-    return CustomPaint(size: Size.infinite, painter: GridPainter());
-  }
-
-  Widget _buildPositionedSeat(BuildContext context, WidgetRef ref, Seat seat) {
-    return Positioned(
-      left: seat.x,
-      top: seat.y,
-      child: SizedBox(
-        width: seat.width,
-        height: seat.height,
-        child: Material(
-          color: Colors.transparent,
-          child: _buildSeatWithPopup(context, ref, seat),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSeatWithPopup(BuildContext context, WidgetRef ref, Seat seat) {
-    return Builder(
-      builder: (BuildContext context) {
-        return SeatWidget(
-          seat: seat,
-          // size 파라미터 제거 - SeatWidget에서 seat.width, seat.height 사용
-          onTap: () => _showSeatPopupMenu(context, ref, seat),
-        );
-      },
     );
   }
 
@@ -756,29 +471,4 @@ class _SeatLayoutScreenState extends ConsumerState<SeatLayoutScreen> {
       ),
     );
   }
-}
-
-// 배경 그리드를 그리는 CustomPainter
-class GridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.grey.withValues(alpha: 0.2)
-      ..strokeWidth = 0.5;
-
-    const gridSize = AppConstants.gridSize;
-
-    // 세로선 그리기
-    for (double x = 0; x <= size.width; x += gridSize) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-
-    // 가로선 그리기
-    for (double y = 0; y <= size.height; y += gridSize) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

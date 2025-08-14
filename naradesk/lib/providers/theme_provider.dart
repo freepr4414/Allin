@@ -185,16 +185,21 @@ class ThemeNotifier extends StateNotifier<ThemeState> {
   }
 
   ThemeData get darkTheme {
-    final colorScheme =
-        ColorScheme.fromSeed(
-          seedColor: state.themeColor.color,
-          brightness: Brightness.dark,
-        ).copyWith(
-          surfaceContainer: Colors.grey[850], // 설정 패널 일반 배경
-          surfaceContainerLow: Colors.grey[900], // 설정 패널 낮은 강조 배경
-          surfaceContainerHigh: Colors.grey[800], // 설정 패널 높은 강조 배경
-          surfaceContainerHighest: Colors.grey[700], // 설정 패널 최고 강조 배경 (하단바 등)
-        );
+    final colorScheme = ColorScheme.dark(
+      primary: state.themeColor.color,  // 원본 색상 그대로 사용
+      secondary: state.themeColor.color.withValues(alpha: 0.7),
+      tertiary: state.themeColor.color.withValues(alpha: 0.5),
+      surface: Colors.grey[850]!,
+      surfaceContainer: Colors.grey[850]!, // 설정 패널 일반 배경
+      surfaceContainerLow: Colors.grey[900]!, // 설정 패널 낮은 강조 배경
+      surfaceContainerHigh: Colors.grey[800]!, // 설정 패널 높은 강조 배경
+      surfaceContainerHighest: Colors.grey[700]!, // 설정 패널 최고 강조 배경 (하단바 등)
+      onSurface: Colors.white70,
+      onPrimary: Colors.white,
+      onSecondary: Colors.white,
+      onError: Colors.white70,
+      onTertiary: Colors.white70,
+    );
 
     final theme = ThemeData(
       useMaterial3: true,
