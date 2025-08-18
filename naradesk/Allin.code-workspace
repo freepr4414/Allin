@@ -1,0 +1,58 @@
+{
+  "folders": [
+    {
+      "name": "📱 naradesk (Flutter Desktop)",
+      "path": "./naradesk"
+    },
+    {
+      "name": "📱 naradevice (Flutter Device)",
+      "path": "./naradevice"
+    },
+    {
+      "name": "🎮 sampleui (Flutter Sample)",
+      "path": "./sampleui"
+    },
+    {
+      "name": "🔧 naracontrol (Go Control)",
+      "path": "./naracontrol"
+    },
+    {
+      "name": "🗄️ narabackend (Go Backend)",
+      "path": "./narabackend"
+    },
+    {
+      "name": "💾 naradbmake (Go Database)",
+      "path": "./naradbmake"
+    }
+  ],
+  "settings": {
+    "editor.fontFamily": "Consolas, 'Courier New', monospace",
+    "window.zoomLevel": 0,
+    "editor.mouseWheelZoom": true,
+    "editor.fontWeight": "normal",
+    "editor.fontSize": 14,
+    "gitlens.advanced.messages": {
+      "suppressGitDisabledWarning": true,
+      "suppressGitMissingWarning": true
+    },
+    "workbench.iconTheme": "file-icons",
+
+    // 자동 저장 설정 강화
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 1000,
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit"
+    },
+
+    // 추가 편의 설정
+    "editor.wordWrap": "on",
+    "editor.minimap.enabled": true,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+
+    // 종료 시 저장 확인 설정
+    "files.hotExit": "onExitAndWindowClose",
+    "window.confirmBeforeClose": "always"
+  }
+}

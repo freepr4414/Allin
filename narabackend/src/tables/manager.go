@@ -22,7 +22,7 @@ import (
 // JSON 태그는 API 응답 시 필드명을 정의하고, db 태그는 데이터베이스 컬럼명을 정의합니다.
 type Manager struct {
 	ManagerID   string    `json:"manager_id" db:"manager_id"`
-	ManagerName string    `json:"manager_name" db:"manager_name"`
+	ManagerName string    `json:"name" db:"name"`
 	Password    string    `json:"password,omitempty" db:"password"`
 	Email       string    `json:"email" db:"email"`
 	Phone       string    `json:"phone" db:"phone"`
@@ -65,9 +65,9 @@ func GetManagers(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	// 허용된 필드 목록 정의 - 보안을 위해 화이트리스트 방식 사용
-	// 비밀번호 필드는 보안상 제외하여 노출 방지
+	// 인증을 위해 password 필드도 포함 (로그인 시 필요)
 	allowedFields := []string{
-		"manager_id", "manager_name", "email", "phone", "role", "created_at", "updated_at",
+		"manager_id", "name", "password", "email", "phone", "role", "created_at", "updated_at",
 	}
 
 	// X-Fields 헤더를 통한 필드 선택 처리
@@ -116,17 +116,21 @@ func GetManagers(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// 검색 기능 추가 (manager_name, email에 대한 부분 검색)
+	// 검색 기능 추가 (name, email에 대한 부분 검색)
 	// 관리자 이름이나 이메일 주소를 통한 유연한 검색 지원
 	if search := r.URL.Query().Get("search"); search != "" {
-		filters = append(filters, fmt.Sprintf("(manager_name LIKE $%d OR email LIKE $%d)", paramIdx, paramIdx+1))
+		filters = append(filters, fmt.Sprintf("(name LIKE $%d OR email LIKE $%d)", paramIdx, paramIdx+1))
 		args = append(args, "%"+search+"%", "%"+search+"%")
 		paramIdx += 2
 	}
 
 	// 시작 시간 로깅
 	startTime := time.Now()
-	log.Printf("Manager 목록 조회 요청 시작")
+	log.Printf("🔍 [GetManagers] 요청 시작 - Method: %s, URL: %s", r.Method, r.URL.String())
+	log.Printf("📝 [GetManagers] 요청된 필드: %v", fields)
+	if len(filters) > 0 {
+		log.Printf("🔎 [GetManagers] 필터 조건: %v, 인자: %v", filters, args)
+	}
 
 	// 쿼리 구성 - 동적 필드 선택과 필터링 조건 적용
 	query := "SELECT " + strings.Join(fields, ", ") + " FROM manager_table"
@@ -145,11 +149,11 @@ func GetManagers(w http.ResponseWriter, r *http.Request) {
 
 		// 허용된 정렬 필드인지 확인 (SQL 인젝션 방지)
 		allowedSortFields := map[string]bool{
-			"manager_id":   true,
-			"manager_name": true,
-			"email":        true,
-			"role":         true,
-			"created_at":   true,
+			"manager_id": true,
+			"name":       true,
+			"email":      true,
+			"role":       true,
+			"created_at": true,
 		}
 
 		if allowedSortFields[sort] {
@@ -161,7 +165,8 @@ func GetManagers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 쿼리 로깅
-	log.Printf("실행 쿼리: %s, 인자: %v", query, args)
+	log.Printf("📊 [GetManagers] 실행 쿼리: %s", query)
+	log.Printf("🔢 [GetManagers] 쿼리 인자: %v", args)
 
 	// 쿼리 실행 - 인자 유무에 따른 조건부 실행
 	var rows *sql.Rows
@@ -173,10 +178,11 @@ func GetManagers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		log.Printf("데이터베이스 쿼리 오류: %v", err)
+		log.Printf("❌ [GetManagers] 데이터베이스 쿼리 오류: %v", err)
 		http.Error(w, "데이터 조회 중 오류가 발생했습니다", http.StatusInternalServerError)
 		return
 	}
+	log.Printf("✅ [GetManagers] 데이터베이스 연결 및 쿼리 실행 성공", )
 	defer rows.Close()
 
 	// 결과 처리 - 컬럼 정보 가져오기
@@ -222,15 +228,25 @@ func GetManagers(w http.ResponseWriter, r *http.Request) {
 
 	// 실행 시간 로깅
 	duration := time.Since(startTime)
-	log.Printf("목록 조회 쿼리 실행 시간: %v, 결과 수: %d", duration, len(result))
+	log.Printf("⏱️  [GetManagers] 쿼리 실행 시간: %v", duration)
+	log.Printf("📋 [GetManagers] 조회된 결과 수: %d건", len(result))
 
 	// 결과 반환
 	w.Header().Set("Content-Type", "application/json")
+	log.Printf("📤 [GetManagers] JSON 응답 전송 시작")
+
+	// 디버깅을 위한 실제 데이터 출력
+	for i, manager := range result {
+		log.Printf("🔍 [GetManagers] 매니저 [%d]: ID=%s, Name=%s, Password=%s, Email=%s",
+			i, manager["manager_id"], manager["name"], manager["password"], manager["email"])
+	}
+
 	if err := json.NewEncoder(w).Encode(result); err != nil {
-		log.Printf("JSON 인코딩 오류: %v", err)
+		log.Printf("❌ [GetManagers] JSON 인코딩 오류: %v", err)
 		http.Error(w, "응답 생성 중 오류가 발생했습니다", http.StatusInternalServerError)
 		return
 	}
+	log.Printf("✅ [GetManagers] 응답 전송 완료 - %d건의 매니저 데이터", len(result))
 }
 
 // GetManager: URL 경로에서 manager_id를 추출하여 특정 관리자 정보를 조회합니다.
@@ -307,7 +323,7 @@ func CreateManager(w http.ResponseWriter, r *http.Request) {
 
 	// 필수 필드 검증 - 관리자 계정 생성에 반드시 필요한 정보들
 	if req.ManagerID == "" || req.ManagerName == "" || req.Password == "" || req.Email == "" {
-		log.Printf("필수 필드 누락 - ManagerID: %s, ManagerName: %s, Email: %s", 
+		log.Printf("필수 필드 누락 - ManagerID: %s, ManagerName: %s, Email: %s",
 			req.ManagerID, req.ManagerName, req.Email)
 		http.Error(w, "필수 필드가 누락되었습니다 (manager_id, manager_name, password, email)", http.StatusBadRequest)
 		return
@@ -319,7 +335,7 @@ func CreateManager(w http.ResponseWriter, r *http.Request) {
 
 	// 시작 시간 로깅
 	startTime := time.Now()
-	log.Printf("Manager 생성 요청 시작 - ID: %s, Name: %s, Email: %s", 
+	log.Printf("Manager 생성 요청 시작 - ID: %s, Name: %s, Email: %s",
 		req.ManagerID, req.ManagerName, req.Email)
 
 	// 비밀번호 해싱 (실제 환경에서는 bcrypt 등을 사용해야 함)

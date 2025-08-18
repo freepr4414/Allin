@@ -8,7 +8,8 @@ import 'dart:io';
 import 'utils/platform_stub.dart' if (dart.library.io) 'utils/platform_io.dart';
 
 // 조건부 import: 웹에서는 stub, 다른 플랫폼에서는 실제 window_manager 사용
-import 'utils/window_manager_stub.dart' if (dart.library.io) 'utils/window_manager_io.dart';
+import 'utils/window_manager_stub.dart'
+    if (dart.library.io) 'utils/window_manager_io.dart';
 
 import 'constants/app_constants.dart';
 import 'providers/auth_provider.dart';
@@ -16,18 +17,28 @@ import 'providers/font_size_provider.dart';
 import 'providers/theme_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/main/main_layout_responsive.dart';
+import 'services/api_service.dart';
 import 'utils/font_theme_utils.dart';
 import 'utils/responsive.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  print('🚀 [MAIN] 앱 시작됨');
+  print('🔧 [MAIN] Flutter 바인딩 초기화 완료');
+
+  // API 서비스 초기화
+  print('🌐 [MAIN] API 서비스 초기화 시작');
+  ApiService.setupInterceptors();
+  print('✅ [MAIN] API 서비스 초기화 완료');
+
   // 웹이 아닌 데스크톱 플랫폼에서만 window manager 초기화
   if (!kIsWeb) {
+    print('💻 [MAIN] 데스크톱 플랫폼 감지됨');
     try {
       if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
         await windowManager.ensureInitialized();
-        
+
         WindowOptions windowOptions = const WindowOptions(
           size: Size(1920, 1080), // 다시 큰 크기로 설정
           minimumSize: Size(800, 600),
@@ -36,7 +47,7 @@ void main() async {
           skipTaskbar: false,
           titleBarStyle: TitleBarStyle.normal, // 타이틀바 유지
         );
-        
+
         windowManager.waitUntilReadyToShow(windowOptions, () async {
           await windowManager.show();
           await windowManager.focus();
@@ -63,7 +74,8 @@ class StudyCafeApp extends ConsumerStatefulWidget {
   ConsumerState<StudyCafeApp> createState() => _StudyCafeAppState();
 }
 
-class _StudyCafeAppState extends ConsumerState<StudyCafeApp> with WindowListener {
+class _StudyCafeAppState extends ConsumerState<StudyCafeApp>
+    with WindowListener {
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   @override
@@ -115,43 +127,45 @@ class _StudyCafeAppState extends ConsumerState<StudyCafeApp> with WindowListener
   Future<bool> _showExitConfirmDialog() async {
     final context = navigatorKey.currentContext;
     if (context == null) return true; // 컨텍스트가 없으면 그냥 종료
-    
+
     return await showDialog<bool>(
-      context: context,
-      barrierDismissible: false, // 다이얼로그 외부 클릭으로 닫기 방지
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.exit_to_app, color: Colors.orange),
-            SizedBox(width: 12),
-            Text('앱 종료'),
-          ],
-        ),
-        content: const Text('정말로 앱을 종료하시겠습니까?'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(false);
-            },
-            child: const Text('취소'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop(true);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+          context: context,
+          barrierDismissible: false, // 다이얼로그 외부 클릭으로 닫기 방지
+          builder: (context) => AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.exit_to_app, color: Colors.orange),
+                SizedBox(width: 12),
+                Text('앱 종료'),
+              ],
             ),
-            child: const Text('종료'),
+            content: const Text('정말로 앱을 종료하시겠습니까?'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                },
+                child: const Text('취소'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('종료'),
+              ),
+            ],
           ),
-        ],
-      ),
-    ) ?? false;
+        ) ??
+        false;
   }
 
   @override
   Widget build(BuildContext context) {
+    print('🎨 [MAIN] MaterialApp build 시작');
     final fontSizeState = ref.watch(fontSizeProvider);
     final currentFontSize = fontSizeState.currentLevel.baseSize;
     final themeState = ref.watch(themeProvider);
@@ -180,7 +194,7 @@ class _StudyCafeAppState extends ConsumerState<StudyCafeApp> with WindowListener
       builder: (context, child) {
         // 통합된 화면 크기 로그
         Responsive.logScreenSize(context, 'MaterialApp Builder');
-        
+
         // 강력한 최소 크기 제약 적용
         return Container(
           constraints: const BoxConstraints(
@@ -190,18 +204,14 @@ class _StudyCafeAppState extends ConsumerState<StudyCafeApp> with WindowListener
           child: LayoutBuilder(
             builder: (context, constraints) {
               // 제약 조건이 최소 크기보다 작으면 강제로 최소 크기 적용
-              final width = constraints.maxWidth < AppConstants.minAppWidth 
-                  ? AppConstants.minAppWidth 
+              final width = constraints.maxWidth < AppConstants.minAppWidth
+                  ? AppConstants.minAppWidth
                   : constraints.maxWidth;
-              final height = constraints.maxHeight < AppConstants.minAppHeight 
-                  ? AppConstants.minAppHeight 
+              final height = constraints.maxHeight < AppConstants.minAppHeight
+                  ? AppConstants.minAppHeight
                   : constraints.maxHeight;
-              
-              return SizedBox(
-                width: width,
-                height: height,
-                child: child,
-              );
+
+              return SizedBox(width: width, height: height, child: child);
             },
           ),
         );
@@ -215,11 +225,19 @@ class AuthWrapper extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    print('🔐 [AUTH_WRAPPER] AuthWrapper build 시작');
     final authState = ref.watch(authProvider);
 
-    Widget child = authState.isAuthenticated 
-        ? const MainLayout() 
+    print('🔍 [AUTH_WRAPPER] 인증 상태: ${authState.isAuthenticated}');
+    print('👤 [AUTH_WRAPPER] 현재 사용자: ${authState.user?.name ?? 'null'}');
+
+    Widget child = authState.isAuthenticated
+        ? const MainLayout()
         : const LoginScreen();
+
+    print(
+      '🎯 [AUTH_WRAPPER] 렌더링할 화면: ${authState.isAuthenticated ? 'MainLayout' : 'LoginScreen'}',
+    );
 
     // 웹이 아닌 모바일에서만 PopScope 적용
     if (!kIsWeb) {
@@ -229,7 +247,7 @@ class AuthWrapper extends ConsumerWidget {
             canPop: false,
             onPopInvokedWithResult: (didPop, result) async {
               if (didPop) return;
-              
+
               final shouldPop = await _showExitConfirmDialog(context);
               if (shouldPop) {
                 // 앱을 완전히 종료
@@ -251,31 +269,32 @@ class AuthWrapper extends ConsumerWidget {
 
   Future<bool> _showExitConfirmDialog(BuildContext context) async {
     return await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.exit_to_app, color: Colors.orange),
-            SizedBox(width: 12),
-            Text('앱 종료'),
-          ],
-        ),
-        content: const Text('정말로 앱을 종료하시겠습니까?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('취소'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.exit_to_app, color: Colors.orange),
+                SizedBox(width: 12),
+                Text('앱 종료'),
+              ],
             ),
-            child: const Text('종료'),
+            content: const Text('정말로 앱을 종료하시겠습니까?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('취소'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('종료'),
+              ),
+            ],
           ),
-        ],
-      ),
-    ) ?? false;
+        ) ??
+        false;
   }
 }

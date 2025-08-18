@@ -66,11 +66,13 @@ func main() {
 	db.SetConnMaxLifetime(5 * time.Minute)
 
 	// DB Ping 시 컨텍스트를 사용하여 타임아웃 적용
+	log.Printf("🔗 [INIT] 데이터베이스 연결 테스트 시작...")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := db.PingContext(ctx); err != nil {
-		log.Fatalf("DB ping 실패: %v", err)
+		log.Fatalf("❌ [INIT] DB ping 실패: %v", err)
 	}
+	log.Printf("✅ [INIT] 데이터베이스 연결 성공!")
 
 	// tables 패키지에 DB 연결 전달
 	utils.DB = db
@@ -93,6 +95,7 @@ func main() {
 	tables.RegisterCompanyRoutes(r)
 
 	// manager_table 관련 라우트 등록
+	log.Printf("🛠️  [INIT] Manager 라우트 등록 중...")
 	tables.RegisterManagerRoutes(r)
 
 	// user_table 관련 라우트 등록
@@ -111,6 +114,10 @@ func main() {
 	handler := utils.LoggingMiddleware(utils.CorsMiddleware(r))
 	http.Handle("/", handler)
 
-	log.Println("서버가 :8080 포트에서 실행 중입니다.")
+	log.Printf("🚀 [INIT] 서버가 :8080 포트에서 실행 중입니다.")
+	log.Printf("📡 [INIT] API 엔드포인트:")
+	log.Printf("   - GET /managers (매니저 목록 조회)")
+	log.Printf("   - GET /managers/{id} (특정 매니저 조회)")
+	log.Printf("🔄 [INIT] 요청 대기 중...")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
