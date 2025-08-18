@@ -19,11 +19,11 @@ import 'screens/auth/login_screen.dart';
 import 'screens/main/main_layout_responsive.dart';
 import 'services/api_service.dart';
 import 'utils/font_theme_utils.dart';
-import 'utils/responsive.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+<<<<<<< HEAD
   print('🚀 [MAIN] 앱 시작됨');
   print('🔧 [MAIN] Flutter 바인딩 초기화 완료');
 
@@ -31,6 +31,10 @@ void main() async {
   print('🌐 [MAIN] API 서비스 초기화 시작');
   ApiService.setupInterceptors();
   print('✅ [MAIN] API 서비스 초기화 완료');
+=======
+  // API 서비스 초기화
+  ApiService.setupInterceptors();
+>>>>>>> eb01e759e3958a53e0ac9aff24e1afc96568c521
 
   // 웹이 아닌 데스크톱 플랫폼에서만 window manager 초기화
   if (!kIsWeb) {
@@ -89,7 +93,6 @@ class _StudyCafeAppState extends ConsumerState<StudyCafeApp>
         }
       } catch (e) {
         // 플랫폼이 지원되지 않는 경우 무시
-        print('Window manager not supported: $e');
       }
     }
   }
@@ -104,7 +107,6 @@ class _StudyCafeAppState extends ConsumerState<StudyCafeApp>
         }
       } catch (e) {
         // 플랫폼이 지원되지 않는 경우 무시
-        print('Window manager not supported: $e');
       }
     }
     super.dispose();
@@ -192,9 +194,12 @@ class _StudyCafeAppState extends ConsumerState<StudyCafeApp>
       home: const AuthWrapper(),
       debugShowCheckedModeBanner: false,
       builder: (context, child) {
+<<<<<<< HEAD
         // 통합된 화면 크기 로그
         Responsive.logScreenSize(context, 'MaterialApp Builder');
 
+=======
+>>>>>>> eb01e759e3958a53e0ac9aff24e1afc96568c521
         // 강력한 최소 크기 제약 적용
         return Container(
           constraints: const BoxConstraints(
@@ -259,7 +264,6 @@ class AuthWrapper extends ConsumerWidget {
         }
       } catch (e) {
         // 플랫폼이 지원되지 않는 경우 무시
-        print('Platform check not supported: $e');
       }
     }
 

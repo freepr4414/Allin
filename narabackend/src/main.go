@@ -72,10 +72,15 @@ func main() {
 	if err := db.PingContext(ctx); err != nil {
 		log.Fatalf("❌ [INIT] DB ping 실패: %v", err)
 	}
+<<<<<<< HEAD
 	log.Printf("✅ [INIT] 데이터베이스 연결 성공!")
+=======
+	log.Printf("데이터베이스 연결 성공!")
+>>>>>>> eb01e759e3958a53e0ac9aff24e1afc96568c521
 
 	// tables 패키지에 DB 연결 전달
 	utils.DB = db
+	log.Printf("utils.DB에 데이터베이스 연결 설정 완료")
 
 	// tables 패키지에 작업 큐 함수 전달
 	utils.SetEnqueueJobFunc(utils.EnqueueJob)
@@ -97,6 +102,7 @@ func main() {
 	// manager_table 관련 라우트 등록
 	log.Printf("🛠️  [INIT] Manager 라우트 등록 중...")
 	tables.RegisterManagerRoutes(r)
+	log.Printf("Manager 라우트 등록 완료")
 
 	// user_table 관련 라우트 등록
 	tables.RegisterUserRoutes(r)

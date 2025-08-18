@@ -68,7 +68,11 @@ dependencies:
   # WebSocket 통신
   web_socket_channel: ^2.4.0
 
+<<<<<<< HEAD
   # HTTP 클라이언트
+=======
+  # HTTP 통신
+>>>>>>> eb01e759e3958a53e0ac9aff24e1afc96568c521
   dio: ^5.4.0
 
 dev_dependencies:

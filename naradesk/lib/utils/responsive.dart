@@ -104,15 +104,6 @@ class Responsive {
     return !isDesktop(context);
   }
 
-  /// 화면 크기 로그 출력 (디버그용)
-  static void logScreenSize(BuildContext context, String location) {
-    final screenSize = MediaQuery.of(context).size;
-    final deviceType = getDeviceType(context);
-    print('=== $location ===');
-    print('화면 크기: ${screenSize.width} x ${screenSize.height}');
-    print('디바이스 타입: ${deviceType.name}');
-  }
-
   /// 반응형 아이콘 크기
   static double getResponsiveIconSize(BuildContext context) {
     return responsive<double>(

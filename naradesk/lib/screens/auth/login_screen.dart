@@ -312,6 +312,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 24),
 
+<<<<<<< HEAD
                 // 실제 테스트 계정 정보
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -320,10 +321,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: scheme.primary.withValues(alpha: 0.2),
+=======
+                // 테스트 계정 안내 (qqqq/1111)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: scheme.outline.withValues(alpha: 0.2),
+>>>>>>> eb01e759e3958a53e0ac9aff24e1afc96568c521
                     ),
                   ),
                   child: Column(
                     children: [
+<<<<<<< HEAD
                       Row(
                         children: [
                           Icon(
@@ -350,6 +363,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           fontFamily: 'monospace',
                         ),
                         textAlign: TextAlign.center,
+=======
+                      Text(
+                        '테스트 계정',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.8),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'ID: qqqq / PW: 1111',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.7),
+                          fontFamily: 'monospace',
+                        ),
+>>>>>>> eb01e759e3958a53e0ac9aff24e1afc96568c521
                       ),
                     ],
                   ),
